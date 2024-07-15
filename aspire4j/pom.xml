@@ -22,6 +22,7 @@
 
     <modules>
         <module>aspire4j</module>
+        <module>aspire4j-dcp</module>
         <module>aspire4j-maven-tools</module>
 
         <module>extensions/azure/azure</module>
@@ -39,7 +40,7 @@
         <!-- manifold extension libraries -->
         <module>extensions/manifold</module>
 
-        <module>aspire4j-dcp</module>
+        
     </modules>
 
     <build>

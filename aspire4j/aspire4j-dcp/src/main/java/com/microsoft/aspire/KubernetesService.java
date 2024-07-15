@@ -50,9 +50,13 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
         }
         ApiClient client = null;
         try {
+            // FIXME wait until the dcp processes are available
+            Thread.sleep(Duration.ofSeconds(3));
             client = Config.fromConfig(new FileInputStream(locations.getDcpKubeconfigPath()));
             Configuration.setDefaultApiClient(client);
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
