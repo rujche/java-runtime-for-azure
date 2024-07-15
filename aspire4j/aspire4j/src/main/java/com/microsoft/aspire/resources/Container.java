@@ -265,4 +265,8 @@ public class Container<T extends Container<T>> extends Resource<T>
             return this;
         }
     }
+
+    public @NotNull(message = "Container.image cannot be null") @NotEmpty(message = "Container.image cannot be an empty string") String getImage() {
+        return image;
+    }
 }

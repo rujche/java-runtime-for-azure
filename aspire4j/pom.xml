@@ -38,6 +38,8 @@
 
         <!-- manifold extension libraries -->
         <module>extensions/manifold</module>
+
+        <module>aspire4j-dcp</module>
     </modules>
 
     <build>

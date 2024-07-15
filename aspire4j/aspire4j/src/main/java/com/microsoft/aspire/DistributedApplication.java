@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 /**
@@ -49,7 +50,7 @@ public class DistributedApplication {
 
     private final List<Extension> extensions = new ArrayList<>();
 
-    DistributedApplication() {
+    public DistributedApplication() {
         manifest = new AspireManifest();
         loadExtensions();
 
@@ -363,5 +364,13 @@ public class DistributedApplication {
         } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
             throw new RuntimeException("Failed to create a new instance of the extension class", e);
         }
+    }
+
+    public AspireManifest getManifest() {
+        return manifest;
+    }
+    
+    public Map<String, Resource<?>> getResources() {
+        return manifest.getResources();
     }
 }

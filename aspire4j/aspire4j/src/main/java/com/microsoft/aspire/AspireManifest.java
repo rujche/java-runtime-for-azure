@@ -40,7 +40,7 @@ class AspireManifest {
         return resource;
     }
 
-    Map<String, Resource<?>> getResources() {
+    public Map<String, Resource<?>> getResources() {
         return resources;
     }
 
