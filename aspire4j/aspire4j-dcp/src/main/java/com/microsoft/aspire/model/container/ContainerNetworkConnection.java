@@ -1,16 +1,12 @@
 package com.microsoft.aspire.model.container;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 
 /**
  * Represents a network connection configuration for a container.
  */
-@Getter
-@Setter
 public class ContainerNetworkConnection {
     /**
      * DCP Resource name of a ContainerNetwork to connect to.
@@ -24,4 +20,20 @@ public class ContainerNetworkConnection {
      */
     @JsonProperty("aliases")
     private List<String> aliases;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<String> getAliases() {
+        return aliases;
+    }
+
+    public void setAliases(List<String> aliases) {
+        this.aliases = aliases;
+    }
 }

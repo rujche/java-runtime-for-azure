@@ -1,7 +1,7 @@
 package com.microsoft.aspire;
 
+import com.microsoft.aspire.process.ProcessSpec;
 import com.microsoft.aspire.process.ProcessUtil;
-import main.java.process.ProcessSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

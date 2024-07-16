@@ -1,14 +1,10 @@
 package com.microsoft.aspire;
 
 import java.time.Duration;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * Options for DCP (Distributed Control Plane) configuration.
  */
-@Getter
-@Setter
 public final class DcpOptions {
     /**
      * The path to the DCP executable used for Aspire orchestration.
@@ -75,4 +71,100 @@ public final class DcpOptions {
      * Timeout for service startup watch.
      */
     private Duration serviceStartupWatchTimeout = Duration.ofSeconds(10);
+
+    public String getCliPath() {
+        return cliPath;
+    }
+
+    public void setCliPath(String cliPath) {
+        this.cliPath = cliPath;
+    }
+
+    public String getExtensionsPath() {
+        return extensionsPath;
+    }
+
+    public void setExtensionsPath(String extensionsPath) {
+        this.extensionsPath = extensionsPath;
+    }
+
+    public String getDashboardPath() {
+        return dashboardPath;
+    }
+
+    public void setDashboardPath(String dashboardPath) {
+        this.dashboardPath = dashboardPath;
+    }
+
+    public String getBinPath() {
+        return binPath;
+    }
+
+    public void setBinPath(String binPath) {
+        this.binPath = binPath;
+    }
+
+    public String getContainerRuntime() {
+        return containerRuntime;
+    }
+
+    public void setContainerRuntime(String containerRuntime) {
+        this.containerRuntime = containerRuntime;
+    }
+
+    public int getDependencyCheckTimeout() {
+        return dependencyCheckTimeout;
+    }
+
+    public void setDependencyCheckTimeout(int dependencyCheckTimeout) {
+        this.dependencyCheckTimeout = dependencyCheckTimeout;
+    }
+
+    public String getResourceNameSuffix() {
+        return resourceNameSuffix;
+    }
+
+    public void setResourceNameSuffix(String resourceNameSuffix) {
+        this.resourceNameSuffix = resourceNameSuffix;
+    }
+
+    public boolean isDeleteResourcesOnShutdown() {
+        return deleteResourcesOnShutdown;
+    }
+
+    public void setDeleteResourcesOnShutdown(boolean deleteResourcesOnShutdown) {
+        this.deleteResourcesOnShutdown = deleteResourcesOnShutdown;
+    }
+
+    public boolean isRandomizePorts() {
+        return randomizePorts;
+    }
+
+    public void setRandomizePorts(boolean randomizePorts) {
+        this.randomizePorts = randomizePorts;
+    }
+
+    public int getKubernetesConfigReadRetryCount() {
+        return kubernetesConfigReadRetryCount;
+    }
+
+    public void setKubernetesConfigReadRetryCount(int kubernetesConfigReadRetryCount) {
+        this.kubernetesConfigReadRetryCount = kubernetesConfigReadRetryCount;
+    }
+
+    public int getKubernetesConfigReadRetryIntervalMilliseconds() {
+        return kubernetesConfigReadRetryIntervalMilliseconds;
+    }
+
+    public void setKubernetesConfigReadRetryIntervalMilliseconds(int kubernetesConfigReadRetryIntervalMilliseconds) {
+        this.kubernetesConfigReadRetryIntervalMilliseconds = kubernetesConfigReadRetryIntervalMilliseconds;
+    }
+
+    public Duration getServiceStartupWatchTimeout() {
+        return serviceStartupWatchTimeout;
+    }
+
+    public void setServiceStartupWatchTimeout(Duration serviceStartupWatchTimeout) {
+        this.serviceStartupWatchTimeout = serviceStartupWatchTimeout;
+    }
 }

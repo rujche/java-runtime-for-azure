@@ -9,7 +9,6 @@ public class GroupVersion {
         this.version = version;
     }
 
-    // Getters and setters
     public String getGroup() {
         return group;
     }

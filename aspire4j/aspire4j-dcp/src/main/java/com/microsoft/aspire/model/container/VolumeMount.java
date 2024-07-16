@@ -1,13 +1,8 @@
 package com.microsoft.aspire.model.container;
 
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * Represents a volume mount configuration for a container.
  */
-@Getter
-@Setter
 public class VolumeMount {
     /**
      * Type of volume mount: either 'bind' or 'volume'.
@@ -29,4 +24,36 @@ public class VolumeMount {
      * Indicates if the mounted file system is supposed to be read-only.
      */
     private boolean isReadOnly = false;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
+    }
+
+    public boolean isReadOnly() {
+        return isReadOnly;
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        isReadOnly = readOnly;
+    }
 }

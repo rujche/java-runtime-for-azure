@@ -1,7 +1,5 @@
 package com.microsoft.aspire.model.common;
 
-import java.util.regex.Pattern;
-
 public final class NamespacedName {
     private final String name;
     private final String namespace;
@@ -11,7 +9,6 @@ public final class NamespacedName {
         this.namespace = namespace;
     }
 
-    // Getters
     public String getName() {
         return name;
     }

@@ -1,13 +1,9 @@
 package com.microsoft.aspire.model.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.Objects;
 
-@Getter
-@Setter
 public final class ServiceProducerAnnotation {
     @JsonProperty("serviceName")
     private String serviceName;
@@ -20,6 +16,30 @@ public final class ServiceProducerAnnotation {
 
     public ServiceProducerAnnotation(String serviceName) {
         this.serviceName = serviceName;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public Integer getPort() {
+        return port;
+    }
+
+    public void setPort(Integer port) {
+        this.port = port;
     }
 
     @Override
@@ -36,4 +56,5 @@ public final class ServiceProducerAnnotation {
     public int hashCode() {
         return Objects.hash(serviceName, address, port);
     }
+    
 }

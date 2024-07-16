@@ -1,8 +1,5 @@
 package com.microsoft.aspire.model.container;
 
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * Defines the types of volume mounts.
  */

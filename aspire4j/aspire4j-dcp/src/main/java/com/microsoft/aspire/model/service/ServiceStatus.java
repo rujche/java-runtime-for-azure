@@ -2,17 +2,13 @@ package com.microsoft.aspire.model.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kubernetes.client.openapi.models.V1Status;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * Represents the status of a Service, extending Kubernetes V1Status.
  */
-@Getter
-@Setter
 public class ServiceStatus extends V1Status {
     /**
-     * he actual address the service is running on
+     * The actual address the service is running on
      */
     @JsonProperty("effectiveAddress")
     private String effectiveAddress;
@@ -28,4 +24,28 @@ public class ServiceStatus extends V1Status {
      */
     @JsonProperty("state")
     private String state;
+
+    public String getEffectiveAddress() {
+        return effectiveAddress;
+    }
+
+    public void setEffectiveAddress(String effectiveAddress) {
+        this.effectiveAddress = effectiveAddress;
+    }
+
+    public Integer getEffectivePort() {
+        return effectivePort;
+    }
+
+    public void setEffectivePort(Integer effectivePort) {
+        this.effectivePort = effectivePort;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
 }

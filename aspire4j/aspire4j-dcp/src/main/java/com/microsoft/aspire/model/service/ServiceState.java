@@ -4,9 +4,13 @@ package com.microsoft.aspire.model.service;
  * Enumerates possible states of a Service.
  */
 public enum ServiceState {
-    // The service is not ready to accept connection. EffectiveAddress and EffectivePort do not contain final data.
+    /**
+     * The service is not ready to accept connection. EffectiveAddress and EffectivePort do not contain final data.
+     */
     NOT_READY("NotReady"),
-    // The service is ready to accept connections.
+    /**
+     * The service is ready to accept connections.
+     */
     READY("Ready");
 
     private final String state;

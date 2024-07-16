@@ -1,7 +1,5 @@
 package com.microsoft.aspire.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import com.microsoft.aspire.model.common.CustomResource;
 
 import java.util.HashMap;
@@ -18,10 +16,29 @@ public class Schema {
         return byType.get(type);
     }
 
-    @Getter
-    @AllArgsConstructor
     public static class ResourceDetails {
         private String kind;
         private String resource;
+
+        public ResourceDetails(String kind, String resource) {
+            this.kind = kind;
+            this.resource = resource;
+        }
+
+        public String getKind() {
+            return kind;
+        }
+
+        public void setKind(String kind) {
+            this.kind = kind;
+        }
+
+        public String getResource() {
+            return resource;
+        }
+
+        public void setResource(String resource) {
+            this.resource = resource;
+        }
     }
 }

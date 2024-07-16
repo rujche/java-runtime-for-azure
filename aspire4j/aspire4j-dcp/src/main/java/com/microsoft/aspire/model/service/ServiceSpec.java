@@ -1,15 +1,11 @@
 package com.microsoft.aspire.model.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
 import com.microsoft.aspire.model.container.PortProtocol;
 
 /**
  * Specifications for a Service, including network details.
  */
-@Getter
-@Setter
 public class ServiceSpec {
     /**
      * The desired address for the service to run on.
@@ -34,4 +30,36 @@ public class ServiceSpec {
      */
     @JsonProperty("addressAllocationMode")
     private String addressAllocationMode = AddressAllocationModes.LOCALHOST.getMode();
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public Integer getPort() {
+        return port;
+    }
+
+    public void setPort(Integer port) {
+        this.port = port;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
+
+    public String getAddressAllocationMode() {
+        return addressAllocationMode;
+    }
+
+    public void setAddressAllocationMode(String addressAllocationMode) {
+        this.addressAllocationMode = addressAllocationMode;
+    }
 }

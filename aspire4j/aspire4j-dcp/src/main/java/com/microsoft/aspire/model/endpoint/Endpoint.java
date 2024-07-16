@@ -1,12 +1,8 @@
 package com.microsoft.aspire.model.endpoint;
 
-import lombok.Getter;
-import lombok.Setter;
-import com.microsoft.aspire.model.groupversion.Dcp;
 import com.microsoft.aspire.model.common.CustomResource;
+import com.microsoft.aspire.model.groupversion.Dcp;
 
-@Getter
-@Setter
 public final class Endpoint extends CustomResource<EndpointSpec, EndpointStatus> {
     public Endpoint(EndpointSpec spec) {
         super(spec);

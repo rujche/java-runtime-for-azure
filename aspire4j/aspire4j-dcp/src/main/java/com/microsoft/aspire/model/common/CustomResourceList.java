@@ -2,13 +2,9 @@ package com.microsoft.aspire.model.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kubernetes.client.openapi.models.V1ListMeta;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 
-@Getter
-@Setter
 public final class CustomResourceList<T extends CustomResource> {
 
     @JsonProperty("metadata")
@@ -17,4 +13,19 @@ public final class CustomResourceList<T extends CustomResource> {
     @JsonProperty("items")
     private List<T> items;
 
+    public V1ListMeta getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(V1ListMeta metadata) {
+        this.metadata = metadata;
+    }
+
+    public List<T> getItems() {
+        return items;
+    }
+
+    public void setItems(List<T> items) {
+        this.items = items;
+    }
 }

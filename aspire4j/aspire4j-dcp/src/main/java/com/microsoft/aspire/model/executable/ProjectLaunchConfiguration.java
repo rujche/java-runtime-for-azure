@@ -1,14 +1,10 @@
 package com.microsoft.aspire.model.executable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * Represents the configuration settings for launching a project.
  */
-@Getter
-@Setter
 public class ProjectLaunchConfiguration {
 
     /**
@@ -42,4 +38,36 @@ public class ProjectLaunchConfiguration {
      */
     @JsonProperty("disable_launch_profile")
     private boolean disableLaunchProfile = false;
+
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
+    public String getProjectPath() {
+        return projectPath;
+    }
+
+    public void setProjectPath(String projectPath) {
+        this.projectPath = projectPath;
+    }
+
+    public String getLaunchProfile() {
+        return launchProfile;
+    }
+
+    public void setLaunchProfile(String launchProfile) {
+        this.launchProfile = launchProfile;
+    }
+
+    public boolean isDisableLaunchProfile() {
+        return disableLaunchProfile;
+    }
+
+    public void setDisableLaunchProfile(boolean disableLaunchProfile) {
+        this.disableLaunchProfile = disableLaunchProfile;
+    }
 }

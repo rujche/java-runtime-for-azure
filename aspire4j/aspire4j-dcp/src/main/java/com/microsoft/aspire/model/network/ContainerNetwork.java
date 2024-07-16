@@ -1,16 +1,12 @@
 package com.microsoft.aspire.model.network;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import lombok.Getter;
-import lombok.Setter;
-import com.microsoft.aspire.model.groupversion.Dcp;
 import com.microsoft.aspire.model.common.CustomResource;
+import com.microsoft.aspire.model.groupversion.Dcp;
 
 /**
  * Represents a Kubernetes Custom Resource for Container Networks.
  */
-@Getter
-@Setter
 public class ContainerNetwork extends CustomResource<ContainerNetworkSpec, ContainerNetworkStatus> {
 
     @JsonCreator

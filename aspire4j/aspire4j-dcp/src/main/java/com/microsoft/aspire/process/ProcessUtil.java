@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -24,7 +23,7 @@ public class ProcessUtil {
      * @param processSpec The specifications for the process to be run.
      * @return A tuple containing the task for process result and an auto-closeable resource for process management.
      */
-    public static Pair<CompletableFuture<ProcessResult>, AutoCloseable> run(main.java.process.ProcessSpec processSpec) throws IOException {
+    public static Pair<CompletableFuture<ProcessResult>, AutoCloseable> run(ProcessSpec processSpec) throws IOException {
         List<String> commands = new ArrayList<>();
         commands.add(processSpec.getExecutablePath());
         commands.addAll(Arrays.asList(processSpec.getArguments().split(" ")));

@@ -2,16 +2,12 @@ package com.microsoft.aspire.model.executablers;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kubernetes.client.openapi.models.V1Status;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.OffsetDateTime;
 
 /**
  * Status for the Executable Replica Set, extending Kubernetes V1Status.
  */
-@Getter
-@Setter
 public class ExecutableReplicaSetStatus extends V1Status {
     /**
      * Total number of observed child executables.
@@ -42,4 +38,44 @@ public class ExecutableReplicaSetStatus extends V1Status {
      */
     @JsonProperty("lastScaleTime")
     private OffsetDateTime lastScaleTime;
+
+    public Integer getObservedReplicas() {
+        return observedReplicas;
+    }
+
+    public void setObservedReplicas(Integer observedReplicas) {
+        this.observedReplicas = observedReplicas;
+    }
+
+    public Integer getRunningReplicas() {
+        return runningReplicas;
+    }
+
+    public void setRunningReplicas(Integer runningReplicas) {
+        this.runningReplicas = runningReplicas;
+    }
+
+    public Integer getFailedReplicas() {
+        return failedReplicas;
+    }
+
+    public void setFailedReplicas(Integer failedReplicas) {
+        this.failedReplicas = failedReplicas;
+    }
+
+    public Integer getFinishedReplicas() {
+        return finishedReplicas;
+    }
+
+    public void setFinishedReplicas(Integer finishedReplicas) {
+        this.finishedReplicas = finishedReplicas;
+    }
+
+    public OffsetDateTime getLastScaleTime() {
+        return lastScaleTime;
+    }
+
+    public void setLastScaleTime(OffsetDateTime lastScaleTime) {
+        this.lastScaleTime = lastScaleTime;
+    }
 }

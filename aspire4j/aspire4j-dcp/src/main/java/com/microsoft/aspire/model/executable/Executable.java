@@ -1,10 +1,8 @@
 package com.microsoft.aspire.model.executable;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import lombok.Getter;
-import lombok.Setter;
-import com.microsoft.aspire.model.groupversion.Dcp;
 import com.microsoft.aspire.model.common.CustomResource;
+import com.microsoft.aspire.model.groupversion.Dcp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +10,6 @@ import java.util.List;
 /**
  * Represents an executable as a custom resource in Kubernetes.
  */
-@Getter
-@Setter
 public class Executable extends CustomResource<ExecutableSpec, ExecutableStatus> {
 
     @Deprecated

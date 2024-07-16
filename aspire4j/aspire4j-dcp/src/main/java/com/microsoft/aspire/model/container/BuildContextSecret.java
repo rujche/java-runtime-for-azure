@@ -1,14 +1,10 @@
 package com.microsoft.aspire.model.container;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * Represents the details for a build context secret.
  */
-@Getter
-@Setter
 public class BuildContextSecret {
     /**
      * The ID of the secret. A secret can be used in a Dockerfile with `RUN --mount-type=secret,id=<id>,target=<targetpath>`.
@@ -33,4 +29,36 @@ public class BuildContextSecret {
      */
     @JsonProperty("source")
     private String source;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
 }

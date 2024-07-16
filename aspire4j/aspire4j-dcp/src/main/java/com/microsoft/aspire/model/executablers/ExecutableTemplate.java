@@ -1,8 +1,6 @@
 package com.microsoft.aspire.model.executablers;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
 import com.microsoft.aspire.model.common.CustomResource;
 import com.microsoft.aspire.model.common.IAnnotationHolder;
 import com.microsoft.aspire.model.executable.ExecutableSpec;
@@ -14,8 +12,6 @@ import java.util.Map;
 /**
  * Represents a template for creating executable objects, holding labels, annotations, and specifications.
  */
-@Getter
-@Setter
 public class ExecutableTemplate implements IAnnotationHolder {
 
     /**
@@ -68,5 +64,29 @@ public class ExecutableTemplate implements IAnnotationHolder {
      */
     public <TValue> boolean tryGetAnnotationAsObjectList(String annotationName, List<TValue> list) {
         return CustomResource.tryGetAnnotationAsObjectList(annotations, annotationName, list);
+    }
+
+    public Map<String, String> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(Map<String, String> labels) {
+        this.labels = labels;
+    }
+
+    public Map<String, String> getAnnotations() {
+        return annotations;
+    }
+
+    public void setAnnotations(Map<String, String> annotations) {
+        this.annotations = annotations;
+    }
+
+    public ExecutableSpec getSpec() {
+        return spec;
+    }
+
+    public void setSpec(ExecutableSpec spec) {
+        this.spec = spec;
     }
 }

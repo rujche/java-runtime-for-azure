@@ -1,8 +1,6 @@
 package com.microsoft.aspire.model.container;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
 import com.microsoft.aspire.model.common.EnvVar;
 
 import java.util.List;
@@ -10,8 +8,6 @@ import java.util.List;
 /**
  * Represents the build context details for Docker image construction.
  */
-@Getter
-@Setter
 public class BuildContext {
     /**
      * The path to the directory that will serve as the root of the image build context.
@@ -54,4 +50,60 @@ public class BuildContext {
      */
     @JsonProperty("labels")
     private List<ContainerLabel> labels;
+
+    public String getContext() {
+        return context;
+    }
+
+    public void setContext(String context) {
+        this.context = context;
+    }
+
+    public String getDockerfile() {
+        return dockerfile;
+    }
+
+    public void setDockerfile(String dockerfile) {
+        this.dockerfile = dockerfile;
+    }
+
+    public List<EnvVar> getArgs() {
+        return args;
+    }
+
+    public void setArgs(List<EnvVar> args) {
+        this.args = args;
+    }
+
+    public List<BuildContextSecret> getSecrets() {
+        return secrets;
+    }
+
+    public void setSecrets(List<BuildContextSecret> secrets) {
+        this.secrets = secrets;
+    }
+
+    public String getStage() {
+        return stage;
+    }
+
+    public void setStage(String stage) {
+        this.stage = stage;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+
+    public List<ContainerLabel> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(List<ContainerLabel> labels) {
+        this.labels = labels;
+    }
 }

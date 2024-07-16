@@ -6,16 +6,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Getter
-@Setter
 public abstract class CustomResource<TSpec, TStatus> implements KubernetesObject, IAnnotationHolder {
     public static final String SERVICE_PRODUCER_ANNOTATION = "service-producer";
     public static final String SERVICE_CONSUMER_ANNOTATION = "service-consumer";
@@ -25,7 +21,7 @@ public abstract class CustomResource<TSpec, TStatus> implements KubernetesObject
     public static final String OTEL_SERVICE_INSTANCE_ID_ANNOTATION = "otel-service-instance-id";
     public static final String RESOURCE_STATE_ANNOTATION = "resource-state";
 
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @JsonProperty("metadata")
     private V1ObjectMeta metadata = new V1ObjectMeta();
@@ -96,7 +92,7 @@ public abstract class CustomResource<TSpec, TStatus> implements KubernetesObject
 
         if (annotations.containsKey(annotationName) && annotations.get(annotationName) != null && !annotations.get(annotationName).isBlank()) {
             try {
-                values = objectMapper.readValue(annotations.get(annotationName), new TypeReference<List<TValue>>() {
+                values = OBJECT_MAPPER.readValue(annotations.get(annotationName), new TypeReference<List<TValue>>() {
                 });
             } catch (Exception e) {
                 values = new ArrayList<>();
@@ -111,11 +107,35 @@ public abstract class CustomResource<TSpec, TStatus> implements KubernetesObject
 
         String newAnnotationVal = null;
         try {
-            newAnnotationVal = objectMapper.writeValueAsString(values);
+            newAnnotationVal = OBJECT_MAPPER.writeValueAsString(values);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
         annotations.put(annotationName, newAnnotationVal);
     }
-    
+
+    @Override
+    public V1ObjectMeta getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(V1ObjectMeta metadata) {
+        this.metadata = metadata;
+    }
+
+    public TSpec getSpec() {
+        return spec;
+    }
+
+    public void setSpec(TSpec spec) {
+        this.spec = spec;
+    }
+
+    public TStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TStatus status) {
+        this.status = status;
+    }
 }

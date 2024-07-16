@@ -1,16 +1,12 @@
 package com.microsoft.aspire.model.executablers;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import lombok.Getter;
-import lombok.Setter;
-import com.microsoft.aspire.model.groupversion.Dcp;
 import com.microsoft.aspire.model.common.CustomResource;
+import com.microsoft.aspire.model.groupversion.Dcp;
 
 /**
  * Represents a set of executable replicas as a Kubernetes custom resource.
  */
-@Getter
-@Setter
 public class ExecutableReplicaSet extends CustomResource<ExecutableReplicaSetSpec, ExecutableReplicaSetStatus> {
 
     /**
@@ -52,4 +48,5 @@ public class ExecutableReplicaSet extends CustomResource<ExecutableReplicaSetSpe
     public String getKind() {
         return Dcp.EXECUTABLE_REPLICA_SET_KIND;
     }
+    
 }
