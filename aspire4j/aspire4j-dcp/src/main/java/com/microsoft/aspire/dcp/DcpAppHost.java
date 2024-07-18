@@ -7,7 +7,6 @@ import com.microsoft.aspire.resources.Container;
 import java.util.concurrent.ExecutionException;
 
 public interface DcpAppHost extends AppHost {
-
     @Override
     default void run() {
         DcpOptions dcpOptions = new DcpOptions();
@@ -20,9 +19,9 @@ public interface DcpAppHost extends AppHost {
         Locations locations = new Locations();
 
         DistributedApplication distributedApplication = new DistributedApplication().getInstance();
-//        Container container = new Container<>("test-redis");
-//        container.withImage("docker.io/library/redis:7.2");
-//        distributedApplication.addResource(container);
+        Container container = new Container<>("test-redis");
+        container.withImage("docker.io/library/redis:7.2");
+        distributedApplication.addResource(container);
 
         DcpDependencyCheckServiceImpl dcpDependencyCheckService = new DcpDependencyCheckServiceImpl();
 
@@ -40,5 +39,21 @@ public interface DcpAppHost extends AppHost {
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
+
+        // Add a shutdown hook to stop the service gracefully
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Shutdown hook triggered");
+            dcpHostService.stopAsync();
+        }));
+
+        // Simulate main application running
+        System.out.println("Main application logic here...");
+        try {
+            Thread.sleep(20000); // Simulate some work in the main thread
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        System.out.println("Main application finished");
+        
     }
 }

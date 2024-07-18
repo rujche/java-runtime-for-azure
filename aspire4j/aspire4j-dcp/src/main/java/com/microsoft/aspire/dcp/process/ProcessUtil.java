@@ -27,7 +27,6 @@ public class ProcessUtil {
         List<String> commands = new ArrayList<>();
         commands.add(processSpec.getExecutablePath());
         commands.addAll(Arrays.asList(processSpec.getArguments().split(" ")));
-
         
         ProcessBuilder processBuilder = new ProcessBuilder(commands)
                 .directory(processSpec.getWorkingDirectory() != null ? new File(processSpec.getWorkingDirectory()) : null)
@@ -36,9 +35,6 @@ public class ProcessUtil {
         if (!processSpec.isInheritEnv()) {
             processBuilder.environment().clear();
         }
-
-        
-        processBuilder.command(commands);
         
         processBuilder.environment().putAll(processSpec.getEnvironmentVariables());
 
@@ -78,7 +74,6 @@ public class ProcessUtil {
         new Thread(() -> {
             try {
                 int exitCode = process.waitFor();
-                System.out.println("\nExited with code : " + exitCode);
                 processFuture.complete(new ProcessResult(exitCode));
             } catch (InterruptedException e) {
                 processFuture.completeExceptionally(e);
@@ -98,42 +93,4 @@ public class ProcessUtil {
         return new Pair<>(processFuture, processDisposer);
     }
 
-    /**
-     * Represents a result of a process execution.
-     */
-    public static final class ProcessResult {
-        private final int exitCode;
-
-        public ProcessResult(int exitCode) {
-            this.exitCode = exitCode;
-        }
-
-        public int getExitCode() {
-            return exitCode;
-        }
-    }
-
-    /**
-     * A utility class to hold a pair of objects.
-     *
-     * @param <A> The first object type.
-     * @param <B> The second object type.
-     */
-    public static class Pair<A, B> {
-        private final A first;
-        private final B second;
-
-        public Pair(A first, B second) {
-            this.first = first;
-            this.second = second;
-        }
-
-        public A getFirst() {
-            return first;
-        }
-
-        public B getSecond() {
-            return second;
-        }
-    }
 }

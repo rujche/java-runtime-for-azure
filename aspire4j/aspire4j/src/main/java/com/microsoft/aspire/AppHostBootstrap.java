@@ -98,6 +98,9 @@ class AppHostBootstrap {
         }
 
         if (parsedParameters.get(PROPERTY_MODE).equals("local")) {
+            // FIXME we should find another way to trigger the DistributedApplication construction
+            final Path outputDir = Paths.get(parsedParameters.get(PROPERTY_OUTPUT_DIR)).toAbsolutePath();
+            appHost.generateManifest(outputDir);
             appHost.run();
         } else {
             // outputDir is the root path and the specified directory combined

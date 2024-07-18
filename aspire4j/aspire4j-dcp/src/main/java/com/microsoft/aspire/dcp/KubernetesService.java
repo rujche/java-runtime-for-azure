@@ -14,8 +14,6 @@ import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Watch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,9 +23,10 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Logger;
 
 public class KubernetesService implements IKubernetesService, AutoCloseable {
-    public static final Logger LOGGER = LoggerFactory.getLogger(KubernetesService.class);
+    private static final Logger LOGGER = Logger.getLogger(KubernetesService.class.getName());
     private static final Duration INITIAL_RETRY_DELAY = Duration.ofMillis(100);
     private static final GroupVersion GROUP_VERSION = Dcp.GROUP_VERSION;
     private final Semaphore kubeconfigReadSemaphore = new Semaphore(1);

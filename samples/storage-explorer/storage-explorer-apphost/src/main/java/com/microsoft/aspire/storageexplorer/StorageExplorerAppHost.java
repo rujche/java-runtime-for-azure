@@ -1,11 +1,11 @@
 package com.microsoft.aspire.storageexplorer;
 
-import com.microsoft.aspire.AppHost;
 import com.microsoft.aspire.DistributedApplication;
+import com.microsoft.aspire.dcp.DcpAppHost;
 import com.microsoft.aspire.extensions.azure.storage.AzureStorageExtension;
 import com.microsoft.aspire.extensions.spring.SpringExtension;
 
-public class StorageExplorerAppHost implements AppHost {
+public class StorageExplorerAppHost implements DcpAppHost {
 
     @Override public void configureApplication(DistributedApplication app) {
         app.printExtensions();

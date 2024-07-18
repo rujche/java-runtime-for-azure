@@ -6,18 +6,22 @@ import com.microsoft.aspire.dcp.model.container.Container;
 import com.microsoft.aspire.dcp.model.endpoint.Endpoint;
 import com.microsoft.aspire.dcp.model.executable.Executable;
 import com.microsoft.aspire.dcp.model.service.Service;
+import com.microsoft.aspire.extensions.spring.resources.SpringProject;
 import com.microsoft.aspire.resources.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class ApplicationExecutor {
 
+    private static final Logger LOGGER = Logger.getLogger(ApplicationExecutor.class.getName());
     private static final String DEBUG_SESSION_PORT_VAR = "DEBUG_SESSION_PORT";
     private static final int RANDOM_NAME_SUFFIX_LENGTH = 8;
 
@@ -95,26 +99,27 @@ public class ApplicationExecutor {
         }
     }
 
-//    public void stopAsync() {
+    public CompletableFuture<Void> stopAsync() {
 //        shutdownCancellation.cancel();
-//        List<Future<?>> tasks = new ArrayList<>();
-//        if (resourceWatchTask != null) {
-//            tasks.add(resourceWatchTask);
-//        }
-//
+        List<Future<?>> tasks = new ArrayList<>();
+        if (resourceWatchTask != null) {
+            tasks.add(resourceWatchTask);
+        }
+
 //        tasks.addAll(logStreams.values().stream().map(entry -> {
 //            entry.getKey().cancel();
 //            return entry.getValue();
 //        }).collect(Collectors.toList()));
-//
-//        try {
-//            for (Future<?> task : tasks) {
-//                task.get();
-//            }
-//        } catch (Exception e) {
-//            logger.log(Level.FINE, "One or more monitoring tasks terminated with an error.", e);
-//        }
-//    }
+
+        try {
+            for (Future<?> task : tasks) {
+                task.get();
+            }
+        } catch (Exception e) {
+            LOGGER.fine("One or more monitoring tasks terminated with an error. " +  e.getMessage());
+        }
+        return new CompletableFuture<>();
+    }
 
     private void prepareServices() {
         // Implementation here
@@ -174,7 +179,15 @@ public class ApplicationExecutor {
     }
 
     private void prepareExecutables() {
-        // Implementation here
+        List<Resource<?>> springProjects = this.model.getResources()
+                .values()
+                .stream()
+                .filter(r -> r.getType().equals("project.spring.v0")).collect(Collectors.toList());
+        for (Resource springProject : springProjects) {
+            SpringProject project = (SpringProject) springProject;
+
+
+        }
     }
 
     private void publishResourcesWithInitialState() {
@@ -197,6 +210,11 @@ public class ApplicationExecutor {
             System.out.println("Container created: " + container.getMetadata().getName());
         });
         
+    }
+
+    public CompletableFuture<Void> deleteResourcesAsync()
+    {
+        return new CompletableFuture<>();
     }
 
     private static class LogInformationEntry {

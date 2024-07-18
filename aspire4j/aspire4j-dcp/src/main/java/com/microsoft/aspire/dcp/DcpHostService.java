@@ -1,13 +1,12 @@
 package com.microsoft.aspire.dcp;
 
+import com.microsoft.aspire.dcp.process.Pair;
+import com.microsoft.aspire.dcp.process.ProcessResult;
 import com.microsoft.aspire.dcp.process.ProcessSpec;
 import com.microsoft.aspire.dcp.process.ProcessUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -15,11 +14,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 
 public class DcpHostService implements AutoCloseable {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(DcpHostService.class);
+    private static final Logger LOGGER = Logger.getLogger(DcpHostService.class.getName());
     private static final int LOGGING_SOCKET_CONNECTION_BACKLOG = 3;
     private final ApplicationExecutor appExecutor;
 //    private final Logger logger;
@@ -39,7 +39,6 @@ public class DcpHostService implements AutoCloseable {
     private AutoCloseable dcpRunDisposable;
 
     public DcpHostService(
-//            Logger logger,
             DcpOptions dcpOptions,
 //            DistributedApplicationExecutionContext executionContext,
             ApplicationExecutor appExecutor,
@@ -69,24 +68,24 @@ public class DcpHostService implements AutoCloseable {
         return CompletableFuture.completedFuture(null);
     }
 
-//    public CompletableFuture<Void> stopAsync() {
-//        if (dcpOptions.isDeleteResourcesOnShutdown()) {
-//            appExecutor.deleteResourcesAsync()
-//                    .exceptionally(ex -> {
-//                        logger.severe("Error deleting application resources: " + ex.getMessage());
-//                        return null;
-//                    });
-//        }
-//
-//        running = false;
-//        return appExecutor.stopAsync()
-//                .thenCompose(v -> {
-//                    if (logProcessorTask != null) {
-//                        return logProcessorTask;
-//                    }
-//                    return CompletableFuture.completedFuture(null);
-//                });
-//    }
+    public CompletableFuture<Void> stopAsync() {
+        if (dcpOptions.isDeleteResourcesOnShutdown()) {
+            appExecutor.deleteResourcesAsync()
+                    .exceptionally(ex -> {
+                        LOGGER.severe("Error deleting application resources: " + ex.getMessage());
+                        return null;
+                    });
+        }
+
+        running = false;
+        return appExecutor.stopAsync()
+                .thenCompose(v -> {
+                    if (logProcessorTask != null) {
+                        return logProcessorTask;
+                    }
+                    return CompletableFuture.completedFuture(null);
+                });
+    }
 
     @Override
     public void close() {
@@ -94,7 +93,7 @@ public class DcpHostService implements AutoCloseable {
             try {
                 dcpRunDisposable.close();
             } catch (Exception ex) {
-                LOGGER.error("One or more monitoring tasks terminated with an error: {}", ex.getMessage());
+                LOGGER.severe("One or more monitoring tasks terminated with an error: " + ex.getMessage());
             }
         }
     }
@@ -122,9 +121,8 @@ public class DcpHostService implements AutoCloseable {
 //            }
 
         try {
-            ProcessUtil.Pair<CompletableFuture<ProcessUtil.ProcessResult>, AutoCloseable> result = 
-                    ProcessUtil.run(dcpProcessSpec);
-            result.getFirst().get();
+            Pair<CompletableFuture<ProcessResult>, AutoCloseable> result = ProcessUtil.run(dcpProcessSpec);
+            result.first().get();
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (ExecutionException e) {
@@ -150,17 +148,13 @@ public class DcpHostService implements AutoCloseable {
         }
 
         ProcessSpec dcpProcessSpec = new ProcessSpec(dcpExePath);
-//        dcpProcessSpec.setWorkingDirectory(System.getProperty("user.dir"));
-        Path parent = Paths.get(dcpExePath).getParent();
-        if (parent != null) {
-            dcpProcessSpec.setWorkingDirectory(parent.toString());
-        }
+        dcpProcessSpec.setWorkingDirectory(System.getProperty("user.dir"));
         dcpProcessSpec.setArguments(arguments);
         dcpProcessSpec.setOnOutputData(System.out::println);
         dcpProcessSpec.setOnErrorData(System.err::println);
         dcpProcessSpec.setInheritEnv(false);
 
-        LOGGER.info("Starting DCP with arguments: {}", dcpProcessSpec.getArguments());
+        LOGGER.info("Starting DCP with arguments: " + dcpProcessSpec.getArguments());
 
         Map<String, String> environment = System.getenv();
         for (Map.Entry<String, String> entry : environment.entrySet()) {
