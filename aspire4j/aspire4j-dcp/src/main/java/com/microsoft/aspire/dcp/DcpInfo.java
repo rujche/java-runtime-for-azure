@@ -32,6 +32,9 @@ public final class DcpInfo {
     }
 
     public Version getVersion() {
+        if (version == null) {
+            version = new Version(versionString);
+        }
         return version;
     }
 

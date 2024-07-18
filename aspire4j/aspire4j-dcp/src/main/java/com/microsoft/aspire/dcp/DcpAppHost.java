@@ -15,18 +15,16 @@ public interface DcpAppHost extends AppHost {
         dcpOptions.setExtensionsPath("/Users/xiada/Documents/Projects/aspire4j/aspire4j/aspire4j-dcp/bin/darwin_arm64_0.5.7/ext");
 
         DcpInfo dcpInfo = new DcpInfo();
-
         Locations locations = new Locations();
 
-        DistributedApplication distributedApplication = new DistributedApplication().getInstance();
-        Container container = new Container<>("test-redis");
-        container.withImage("docker.io/library/redis:7.2");
-        distributedApplication.addResource(container);
+        // FIXME: this is just for test, remove it later
+        DistributedApplication.getInstance()
+                .addResource(new Container<>("for-test-redis").withImage("docker.io/library/redis:7.2"));
 
-        DcpDependencyCheckServiceImpl dcpDependencyCheckService = new DcpDependencyCheckServiceImpl();
+        DcpDependencyCheckServiceImpl dcpDependencyCheckService = new DcpDependencyCheckServiceImpl(dcpOptions);
 
         ApplicationExecutor applicationExecutor = new ApplicationExecutor(
-                distributedApplication,
+                DistributedApplication.getInstance(),
                 new KubernetesService(dcpOptions, locations),
                 dcpOptions,
                 dcpDependencyCheckService);

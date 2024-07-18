@@ -16,7 +16,6 @@ import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Watch;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -77,27 +76,21 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
         CustomObjectsApi apiInstance = new CustomObjectsApi(this.kubernetes);
         String group = GROUP_VERSION.getGroup();
         String version = GROUP_VERSION.getVersion();
+        boolean namespaceNotProvided = isNullOrEmpty(namespaceParameter);
         try {
-            
-            if (namespaceParameter == null) {
+            if (namespaceNotProvided) {
                 ApiResponse<Object> result = apiInstance.getClusterCustomObject(group, version, resourceType, name)
                     .executeWithHttpInfo();
-                System.out.println(result);
                 return convert(result.getData(), clazz);
             } else {
                 ApiResponse<Object> result = apiInstance.getNamespacedCustomObject(group, version, namespaceParameter, resourceType, name)
                     .executeWithHttpInfo();
-                System.out.println(result);
                 return convert(result.getData(), clazz);
             }
         } catch (ApiException e) {
-            System.err.println("Exception when calling CustomObjectsApi#getNamespacedCustomObject");
-            System.err.println("Status code: " + e.getCode());
-            System.err.println("Reason: " + e.getResponseBody());
-            System.err.println("Response headers: " + e.getResponseHeaders());
-            e.printStackTrace();
+            logApiException(e, namespaceNotProvided ? "CustomObjectsApi#getClusterCustomObject" : "CustomObjectsApi#getNamespacedCustomObject");
+            return null;
         }
-        return null;
     }
 
     @Override
@@ -113,15 +106,15 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
 //        String dryRun = "dryRun_example"; // String | When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
 //        String fieldManager = "fieldManager_example"; // String | fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
 //        String fieldValidation = "fieldValidation_example"; // String | fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered. (optional)
+        boolean namespaceNotProvided = isNullOrEmpty(namespace);
         try {
-            if (namespace == null || namespace.isEmpty()) {
+            if (namespaceNotProvided) {
                 ApiResponse<Object> result = apiInstance.createClusterCustomObject(group, version, resourceType, obj)
 //                        .pretty(pretty)
 //                        .dryRun(dryRun)
 //                        .fieldManager(fieldManager)
 //                        .fieldValidation(fieldValidation)
                         .executeWithHttpInfo();
-                System.out.println(result);
                 return convert(result.getData(), clazz);
             } else {
                 ApiResponse<Object> result = apiInstance.createNamespacedCustomObject(group, version, namespace, resourceType, obj)
@@ -130,18 +123,13 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
 //                        .fieldManager(fieldManager)
 //                        .fieldValidation(fieldValidation)
                         .executeWithHttpInfo();
-                System.out.println(result);
                 return convert(result.getData(), clazz);
             }
             
         } catch (ApiException e) {
-            System.err.println("Exception when calling CustomObjectsApi#createClusterCustomObject");
-            System.err.println("Status code: " + e.getCode());
-            System.err.println("Reason: " + e.getResponseBody());
-            System.err.println("Response headers: " + e.getResponseHeaders());
-            e.printStackTrace();
+            logApiException(e, namespaceNotProvided ? "CustomObjectsApi#createClusterCustomObject" : "CustomObjectsApi#createNamespacedCustomObject");
+            return null;
         }
-        return null;
     }
 
     @Override
@@ -151,26 +139,21 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
         String group = GROUP_VERSION.getGroup();
         String version = GROUP_VERSION.getVersion();
         
+        boolean namespaceNotProvided = isNullOrEmpty(namespaceParameter);
         try {
-            if (namespaceParameter == null) {
+            if (namespaceNotProvided) {
                 ApiResponse<Object> result = apiInstance.listClusterCustomObject(group, version, resourceType)
                     .executeWithHttpInfo();
-                System.out.println(result);
                 return convert(result.getData(), List.class);
             } else {
                 ApiResponse<Object> result = apiInstance.listNamespacedCustomObject(group, version, namespaceParameter, resourceType)
                     .executeWithHttpInfo();
-                System.out.println(result);
                 return convert(result.getData(), List.class);
             }
         } catch (ApiException e) {
-            System.err.println("Exception when calling CustomObjectsApi#listClusterCustomObject");
-            System.err.println("Status code: " + e.getCode());
-            System.err.println("Reason: " + e.getResponseBody());
-            System.err.println("Response headers: " + e.getResponseHeaders());
-            e.printStackTrace();
+            logApiException(e, namespaceNotProvided ? "CustomObjectsApi#listClusterCustomObject" : "CustomObjectsApi#listNamespacedCustomObject");
+            return null;
         }
-        return null;
     }
 
     @Override
@@ -179,24 +162,19 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
         CustomObjectsApi apiInstance = new CustomObjectsApi(this.kubernetes);
         String group = GROUP_VERSION.getGroup();
         String version = GROUP_VERSION.getVersion();
+        boolean namespaceNotProvided = isNullOrEmpty(namespaceParameter);
         try {
-            if (namespaceParameter == null) {
+            if (namespaceNotProvided) {
                 ApiResponse<Object> result = apiInstance.deleteClusterCustomObject(group, version, resourceType, name)
                     .executeWithHttpInfo();
-                System.out.println(result);
                 return convert(result.getData(), clazz);
             } else {
                 ApiResponse<Object> result = apiInstance.deleteNamespacedCustomObject(group, version, namespaceParameter, resourceType, name)
                     .executeWithHttpInfo();
-                System.out.println(result);
                 return convert(result.getData(), clazz);
             }
         } catch (ApiException e) {
-            System.err.println("Exception when calling CustomObjectsApi#deleteClusterCustomObject");
-            System.err.println("Status code: " + e.getCode());
-            System.err.println("Reason: " + e.getResponseBody());
-            System.err.println("Response headers: " + e.getResponseHeaders());
-            e.printStackTrace();
+            logApiException(e, namespaceNotProvided ? "CustomObjectsApi#deleteClusterCustomObject" : "CustomObjectsApi#deleteNamespacedCustomObject");
         }
         return null;
     }
@@ -208,8 +186,10 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
         CustomObjectsApi apiInstance = new CustomObjectsApi(this.kubernetes);
         String group = GROUP_VERSION.getGroup();
         String version = GROUP_VERSION.getVersion();
+        
+        boolean namespaceNotProvided = isNullOrEmpty(namespaceParameter);
         try {
-            if (namespaceParameter == null) {
+            if (namespaceNotProvided) {
                 return Watch.createWatch(this.kubernetes, apiInstance.listClusterCustomObject(group, version, resourceType)
                         .executeAsync(new ApiCallback<Object>() {
                             @Override
@@ -258,11 +238,7 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
                         }), clazz);
             }
         } catch (ApiException e) {
-            System.err.println("Exception when calling CustomObjectsApi#listClusterCustomObject");
-            System.err.println("Status code: " + e.getCode());
-            System.err.println("Reason: " + e.getResponseBody());
-            System.err.println("Response headers: " + e.getResponseHeaders());
-            e.printStackTrace();
+            logApiException(e, namespaceParameter == null ? "CustomObjectsApi#listClusterCustomObject" : "CustomObjectsApi#listNamespacedCustomObject");
         }
         // FIXME: return null
         return null;
@@ -272,7 +248,6 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
     public <T extends CustomResource> InputStream getLogStreamAsync(Class<T> clazz, T obj, String logStreamType, boolean follow, boolean timestamps) {
         return null;
     }
-
 
     private static <T extends CustomResource> String getResourceFor(Class<T> resourceClass) {
         Schema.ResourceDetails resourceDetails = Dcp.SCHEMA.get(resourceClass);
@@ -287,6 +262,19 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
         JsonElement jsonElement = JSON.getGson().toJsonTree(o);
         return JSON.getGson().fromJson(jsonElement, clazz);
     }
-
+    
+    private static void logApiException(ApiException e, String method) {
+        LOGGER.severe("Exception when calling " + method);
+        LOGGER.severe("Status code: " + e.getCode());
+        LOGGER.severe("Reason: " + e.getResponseBody());
+        LOGGER.severe("Response headers: " + e.getResponseHeaders());
+        for (StackTraceElement ste : e.getStackTrace()) {
+            LOGGER.severe(ste.toString());
+        }
+    }
+    
+    private static boolean isNullOrEmpty(String str) {
+        return str == null || str.isEmpty();
+    }
 
 }

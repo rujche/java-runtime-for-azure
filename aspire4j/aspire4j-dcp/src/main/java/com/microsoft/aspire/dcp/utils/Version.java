@@ -15,6 +15,26 @@ public class Version implements Comparable<Version> {
         this.build = build;
     }
 
+    public Version(String versionString) {
+        String[] parts = versionString.split("\\.");
+        if (parts.length > 0) {
+            this.major = Integer.parseInt(parts[0]);
+        }
+        if (parts.length > 1) {
+            this.minor = Integer.parseInt(parts[1]);
+        }
+        if (parts.length > 2) {
+            this.patch = Integer.parseInt(parts[2]);
+        }
+        if (parts.length > 3) {
+            this.build = Integer.parseInt(parts[3]);
+        }
+        if (parts.length > 4) {
+            throw new IllegalArgumentException("Invalid version string: " + versionString);
+        }
+        
+    }
+    
     // Getters
     public int getMajor() {
         return major;

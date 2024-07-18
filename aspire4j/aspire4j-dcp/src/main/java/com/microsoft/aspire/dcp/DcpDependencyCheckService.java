@@ -4,5 +4,6 @@ import java.util.concurrent.CompletableFuture;
 
 // IDcpDependencyCheckService Interface
 public interface DcpDependencyCheckService {
-    DcpInfo getDcpInfo();
+    
+    CompletableFuture<DcpInfo> getDcpInfoAsync();
 }

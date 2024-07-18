@@ -73,7 +73,11 @@ public class ApplicationExecutor {
     public void runApplicationAsync() {
 //        AspireEventSource.getInstance().dcpModelCreationStart();
 
-        this.dcpInfo = dcpDependencyCheckService.getDcpInfo();
+        try {
+            this.dcpInfo = dcpDependencyCheckService.getDcpInfoAsync().get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         try {
             prepareServices();

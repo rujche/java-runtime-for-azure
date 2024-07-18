@@ -62,7 +62,11 @@ public class DcpHostService implements AutoCloseable {
             return CompletableFuture.completedFuture(null);
         }
 
-        DcpInfo dcpInfo = dependencyCheckService.getDcpInfo();
+        try {
+            DcpInfo dcpInfo = dependencyCheckService.getDcpInfoAsync().get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         ensureDcpHostRunning();
         appExecutor.runApplicationAsync();
         return CompletableFuture.completedFuture(null);
