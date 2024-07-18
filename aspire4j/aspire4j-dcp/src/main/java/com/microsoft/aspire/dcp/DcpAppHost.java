@@ -47,13 +47,15 @@ public interface DcpAppHost extends AppHost {
         }));
 
         // Simulate main application running
-        System.out.println("Main application logic here...");
-        try {
-            Thread.sleep(20000); // Simulate some work in the main thread
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        System.out.println("Dcp host running...");
+        while (true) {
+            try {
+                Thread.sleep(20000); // Simulate some work in the main thread
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }    
         }
-        System.out.println("Main application finished");
-        
+        System.out.println("Dcp host finished...");
     }
 }
