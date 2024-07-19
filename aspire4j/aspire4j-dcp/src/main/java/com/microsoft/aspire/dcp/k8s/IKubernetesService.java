@@ -1,4 +1,4 @@
-package com.microsoft.aspire.dcp;
+package com.microsoft.aspire.dcp.k8s;
 
 import io.kubernetes.client.util.Watch;
 import com.microsoft.aspire.dcp.model.common.CustomResource;
@@ -18,5 +18,5 @@ public interface IKubernetesService {
 
     <T extends CustomResource> Watch<T> watch(Class<T> clazz, String namespaceParameter);
 
-    <T extends CustomResource> InputStream getLogStreamAsync(Class<T> clazz, T obj, String logStreamType, boolean follow, boolean timestamps);
+    <T extends CustomResource> InputStream getLogStreamAsync(T obj, String logStreamType, boolean follow, boolean timestamps);
 }

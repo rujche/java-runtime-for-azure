@@ -1,8 +1,7 @@
-package com.microsoft.aspire.dcp;
+package com.microsoft.aspire.dcp.metadata;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public final class Locations {

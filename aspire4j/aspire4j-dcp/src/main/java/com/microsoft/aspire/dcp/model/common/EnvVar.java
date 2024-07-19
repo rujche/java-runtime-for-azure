@@ -8,6 +8,14 @@ public final class EnvVar {
 
     @JsonProperty("value")
     private String value;
+    
+    public EnvVar() {
+    }
+    
+    public EnvVar(String name, String value) {
+        this.name = name;
+        this.value = value;
+    }
 
     public String getName() {
         return name;

@@ -1,4 +1,4 @@
-package com.microsoft.aspire.dcp;
+package com.microsoft.aspire.dcp.exceptions;
 
 public class DistributedApplicationException extends RuntimeException {
 

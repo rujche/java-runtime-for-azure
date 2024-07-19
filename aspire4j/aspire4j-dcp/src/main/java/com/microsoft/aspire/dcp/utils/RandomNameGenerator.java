@@ -1,4 +1,4 @@
-package com.microsoft.aspire.dcp;
+package com.microsoft.aspire.dcp.utils;
 
 import java.security.SecureRandom;
 import java.util.Random;

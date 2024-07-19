@@ -1,4 +1,4 @@
-package com.microsoft.aspire.dcp;
+package com.microsoft.aspire.dcp.metadata;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

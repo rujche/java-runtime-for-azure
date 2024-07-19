@@ -1,4 +1,4 @@
-package com.microsoft.aspire.dcp;
+package com.microsoft.aspire.dcp.utils;
 
 import com.microsoft.aspire.resources.Resource;
 

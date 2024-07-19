@@ -1,5 +1,9 @@
 package com.microsoft.aspire.dcp;
 
+import com.microsoft.aspire.dcp.metadata.DcpDependencyCheckService;
+import com.microsoft.aspire.dcp.metadata.DcpInfo;
+import com.microsoft.aspire.dcp.metadata.DcpOptions;
+import com.microsoft.aspire.dcp.metadata.Locations;
 import com.microsoft.aspire.dcp.process.Pair;
 import com.microsoft.aspire.dcp.process.ProcessResult;
 import com.microsoft.aspire.dcp.process.ProcessSpec;

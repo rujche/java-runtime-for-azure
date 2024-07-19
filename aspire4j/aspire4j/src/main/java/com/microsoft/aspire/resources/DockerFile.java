@@ -117,6 +117,14 @@ public class DockerFile<T extends DockerFile<T>> extends Resource<T>
         return self();
     }
 
+    public String getContext() {
+        return context;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public T self() {

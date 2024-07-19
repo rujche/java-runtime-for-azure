@@ -1,8 +1,11 @@
-package com.microsoft.aspire.dcp;
+package com.microsoft.aspire.dcp.k8s;
 
 import com.google.gson.JsonElement;
+import com.microsoft.aspire.dcp.metadata.DcpOptions;
+import com.microsoft.aspire.dcp.metadata.Locations;
 import com.microsoft.aspire.dcp.model.Schema;
 import com.microsoft.aspire.dcp.model.common.CustomResource;
+import com.microsoft.aspire.dcp.model.common.Logs;
 import com.microsoft.aspire.dcp.model.groupversion.Dcp;
 import com.microsoft.aspire.dcp.model.groupversion.GroupVersion;
 import io.kubernetes.client.openapi.ApiCallback;
@@ -19,9 +22,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class KubernetesService implements IKubernetesService, AutoCloseable {
@@ -30,7 +35,7 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
     private static final GroupVersion GROUP_VERSION = Dcp.GROUP_VERSION;
     private final Semaphore kubeconfigReadSemaphore = new Semaphore(1);
 
-    private ApiClient kubernetes;
+    private DcpKubernetesClient kubernetes;
     // FIXME: resiliencePipeline
 //    private ResiliencePipeline resiliencePipeline;
     private boolean disposed;
@@ -46,11 +51,12 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
         if (this.kubernetes != null) {
             return;
         }
-        ApiClient client = null;
+        DcpKubernetesClient dcpKubernetesClient = null;
         try {
             // FIXME wait until the dcp processes are available
-            Thread.sleep(Duration.ofSeconds(3));
-            client = Config.fromConfig(new FileInputStream(locations.getDcpKubeconfigPath()));
+            Thread.sleep(Duration.ofSeconds(5));
+            ApiClient client = Config.fromConfig(new FileInputStream(locations.getDcpKubeconfigPath()));
+            dcpKubernetesClient = new DcpKubernetesClient(client);
             Configuration.setDefaultApiClient(client);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -58,7 +64,7 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
             throw new RuntimeException(e);
         }
 
-        this.kubernetes = client;
+        this.kubernetes = dcpKubernetesClient;
     }
 
     private Duration maxRetryDuration = Duration.ofSeconds(20);
@@ -73,7 +79,7 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
     public <T extends CustomResource> T get(Class<T> clazz, String name, String namespaceParameter) {
         init(this.locations);
         String resourceType = getResourceFor(clazz);
-        CustomObjectsApi apiInstance = new CustomObjectsApi(this.kubernetes);
+        CustomObjectsApi apiInstance = new CustomObjectsApi(this.getApiClient());
         String group = GROUP_VERSION.getGroup();
         String version = GROUP_VERSION.getVersion();
         boolean namespaceNotProvided = isNullOrEmpty(namespaceParameter);
@@ -99,7 +105,7 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
         String namespace = obj.getMetadata() == null ? null : obj.getMetadata().getNamespace();
         String resourceType = getResourceFor(clazz);
 
-        CustomObjectsApi apiInstance = new CustomObjectsApi(kubernetes);
+        CustomObjectsApi apiInstance = new CustomObjectsApi(this.getApiClient());
         String group = GROUP_VERSION.getGroup();
         String version = GROUP_VERSION.getVersion();
 //        String pretty = "pretty_example"; // String | If 'true', then the output is pretty printed.
@@ -134,8 +140,9 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
 
     @Override
     public <T extends CustomResource> List<T> list(Class<T> clazz, String namespaceParameter) {
+        init(this.locations);
         String resourceType = getResourceFor(clazz);
-        CustomObjectsApi apiInstance = new CustomObjectsApi(this.kubernetes);
+        CustomObjectsApi apiInstance = new CustomObjectsApi(this.getApiClient());
         String group = GROUP_VERSION.getGroup();
         String version = GROUP_VERSION.getVersion();
         
@@ -158,8 +165,9 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
 
     @Override
     public <T extends CustomResource> T delete(Class<T> clazz, String name, String namespaceParameter) {
+        init(this.locations);
         String resourceType = getResourceFor(clazz);
-        CustomObjectsApi apiInstance = new CustomObjectsApi(this.kubernetes);
+        CustomObjectsApi apiInstance = new CustomObjectsApi(this.getApiClient());
         String group = GROUP_VERSION.getGroup();
         String version = GROUP_VERSION.getVersion();
         boolean namespaceNotProvided = isNullOrEmpty(namespaceParameter);
@@ -182,15 +190,16 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
     // FIXME: watch
     @Override
     public <T extends CustomResource> Watch<T> watch(Class<T> clazz, String namespaceParameter) {
+        init(this.locations);
         String resourceType = getResourceFor(clazz);
-        CustomObjectsApi apiInstance = new CustomObjectsApi(this.kubernetes);
+        CustomObjectsApi apiInstance = new CustomObjectsApi(this.getApiClient());
         String group = GROUP_VERSION.getGroup();
         String version = GROUP_VERSION.getVersion();
         
         boolean namespaceNotProvided = isNullOrEmpty(namespaceParameter);
         try {
             if (namespaceNotProvided) {
-                return Watch.createWatch(this.kubernetes, apiInstance.listClusterCustomObject(group, version, resourceType)
+                return Watch.createWatch(this.getApiClient(), apiInstance.listClusterCustomObject(group, version, resourceType)
                         .executeAsync(new ApiCallback<Object>() {
                             @Override
                             public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
@@ -213,7 +222,7 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
                             }
                         }), clazz);
             } else {
-                return Watch.createWatch(this.kubernetes, apiInstance
+                return Watch.createWatch(this.getApiClient(), apiInstance
                         .listNamespacedCustomObject(group, version, namespaceParameter, resourceType)
                         .executeAsync(new ApiCallback<Object>() {
                             @Override
@@ -245,8 +254,30 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
     }
 
     @Override
-    public <T extends CustomResource> InputStream getLogStreamAsync(Class<T> clazz, T obj, String logStreamType, boolean follow, boolean timestamps) {
-        return null;
+    public <T extends CustomResource> InputStream getLogStreamAsync(T obj, String logStreamType, boolean follow, boolean timestamps) {
+        init(this.locations);
+        String resourceType = getResourceFor(obj.getClass());
+        String group = GROUP_VERSION.getGroup();
+        String version = GROUP_VERSION.getVersion();
+        
+        Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("follow", String.valueOf(follow));
+        queryParams.put("timestamps", String.valueOf(timestamps));
+        queryParams.put("source", logStreamType);
+
+        try {
+            return this.kubernetes.readSubResourceAsStreamAsync(group, version, resourceType, 
+                    obj.getMetadata().getName(), Logs.SUB_RESOURCE_NAME, obj.getMetadata().getNamespace(), queryParams, TimeUnit.SECONDS, 10);
+        } catch (ApiException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+//        try {
+////            return apiInstance.getApiClient()(group, version, obj.getMetadata().getNamespace(), resourceType, obj.getMetadata().getName(), logStreamType, follow, timestamps);
+//        } catch (ApiException e) {
+//            logApiException(e, "CustomObjectsApi#getNamespacedCustomObjectLogStream");
+//        }
     }
 
     private static <T extends CustomResource> String getResourceFor(Class<T> resourceClass) {
@@ -275,6 +306,10 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
     
     private static boolean isNullOrEmpty(String str) {
         return str == null || str.isEmpty();
+    }
+    
+    private ApiClient getApiClient() {
+        return this.kubernetes.getDelegate();
     }
 
 }

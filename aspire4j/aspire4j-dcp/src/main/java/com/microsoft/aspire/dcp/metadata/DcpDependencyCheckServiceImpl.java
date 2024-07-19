@@ -1,7 +1,8 @@
-package com.microsoft.aspire.dcp;
+package com.microsoft.aspire.dcp.metadata;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.aspire.dcp.exceptions.DistributedApplicationException;
 import com.microsoft.aspire.dcp.process.Pair;
 import com.microsoft.aspire.dcp.process.ProcessResult;
 import com.microsoft.aspire.dcp.process.ProcessSpec;

@@ -6,13 +6,11 @@ public class Version implements Comparable<Version> {
     private int major;
     private int minor;
     private int patch;
-    private int build;
 
-    public Version(int major, int minor, int patch, int build) {
+    public Version(int major, int minor, int patch) {
         this.major = major;
         this.minor = minor;
         this.patch = patch;
-        this.build = build;
     }
 
     public Version(String versionString) {
@@ -27,9 +25,6 @@ public class Version implements Comparable<Version> {
             this.patch = Integer.parseInt(parts[2]);
         }
         if (parts.length > 3) {
-            this.build = Integer.parseInt(parts[3]);
-        }
-        if (parts.length > 4) {
             throw new IllegalArgumentException("Invalid version string: " + versionString);
         }
         
@@ -48,14 +43,10 @@ public class Version implements Comparable<Version> {
         return patch;
     }
 
-    public int getBuild() {
-        return build;
-    }
-
     // toString method for displaying version
     @Override
     public String toString() {
-        return major + "." + minor + "." + patch + "." + build;
+        return major + "." + minor + "." + patch;
     }
 
     // compareTo method for comparing versions
@@ -67,10 +58,7 @@ public class Version implements Comparable<Version> {
         if (this.minor != other.minor) {
             return Integer.compare(this.minor, other.minor);
         }
-        if (this.patch != other.patch) {
-            return Integer.compare(this.patch, other.patch);
-        }
-        return Integer.compare(this.build, other.build);
+        return Integer.compare(this.patch, other.patch);
     }
 
     // equals method for comparing equality
@@ -80,20 +68,11 @@ public class Version implements Comparable<Version> {
         if (obj == null || getClass() != obj.getClass()) return false;
         Version version = (Version) obj;
         return major == version.major && minor == version.minor &&
-               patch == version.patch && build == version.build;
+               patch == version.patch;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(major, minor, patch, build);
-    }
-
-    public static void main(String[] args) {
-        Version version1 = new Version(1, 0, 0, 0);
-        Version version2 = new Version(1, 0, 1, 0);
-
-        System.out.println("Version 1: " + version1);
-        System.out.println("Version 2: " + version2);
-        System.out.println("Comparison: " + version1.compareTo(version2));
+        return Objects.hash(major, minor, patch);
     }
 }

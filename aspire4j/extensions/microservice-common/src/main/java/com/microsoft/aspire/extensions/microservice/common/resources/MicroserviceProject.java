@@ -36,6 +36,9 @@ public class MicroserviceProject<T extends MicroserviceProject<T>> extends Conta
     @Valid
     @JsonProperty("strategies")
     private Set<DeploymentStrategy> strategies;
+    
+    @JsonIgnore
+    private Map<String, String> introspectOutputEnvs = new HashMap<>();
 
     @NotNull(message = "MicroserviceProject.path cannot be null")
     @NotEmpty(message = "MicroserviceProject.path cannot be an empty string")
@@ -67,57 +70,59 @@ public class MicroserviceProject<T extends MicroserviceProject<T>> extends Conta
 
     @Override
     public void introspect() {
+        this.introspectOutputEnvs = new HashMap<>();
         // we add the available strategies to the aspire manifest and leave it to azd to try its best...
-        Map<String, String> outputEnvs = new HashMap<>();
-        this.strategies = new BuildIntrospector().introspect(this, outputEnvs);
+        this.strategies = new BuildIntrospector().introspect(this, introspectOutputEnvs);
 
         // Add the environment introspected from the project
-        outputEnvs.forEach((k, v) -> {
+        introspectOutputEnvs.forEach((k, v) -> {
             if (!k.startsWith("BUILD_")) {
                 withEnvironment(k, v);
             }
         });
-        if (outputEnvs.containsKey("SERVER_PORT")) {
-            int serverPort = Integer.parseInt(outputEnvs.get("SERVER_PORT"));
+        if (introspectOutputEnvs.containsKey("SERVER_PORT")) {
+            int serverPort = Integer.parseInt(introspectOutputEnvs.get("SERVER_PORT"));
             withHttpEndpoint(serverPort);
         }
 
-        if (outputEnvs.containsKey("BUILD_IMAGE")) {
-            withImage(outputEnvs.get("BUILD_IMAGE"));
+        if (introspectOutputEnvs.containsKey("BUILD_IMAGE")) {
+            withImage(introspectOutputEnvs.get("BUILD_IMAGE"));
         }
-        
+    }
+    
+    private void substituteResources(Map<String, String> outputEnvs) {
         // but, we also look in the strategies to see if we found a dockerfile strategy, as in that case we transform
         // this entire output from a MicroserviceProject resource into a dockerfile resource
         strategies.stream()
-                  .filter(s -> s.getType() == DeploymentStrategy.DeploymentType.DOCKER_FILE)
-                  .findFirst().ifPresent(s -> {
-            // we need to set the service name (to the existing project name), the path to the Dockerfile, and the
-            // context name (which is the directory containing the Dockerfile)
-            // FIXME ugly generics
-            DockerFile<?> dockerFile = new DockerFile<>(getName());
+                .filter(s -> s.getType() == DeploymentStrategy.DeploymentType.DOCKER_FILE)
+                .findFirst().ifPresent(s -> {
+                    // we need to set the service name (to the existing project name), the path to the Dockerfile, and the
+                    // context name (which is the directory containing the Dockerfile)
+                    // FIXME ugly generics
+                    DockerFile<?> dockerFile = new DockerFile<>(getName());
 
-            String dockerFilePath = s.getCommands().get(0)[0];
-            String contextPath = Paths.get(dockerFilePath).getParent().toString();
-            this.copyInto(dockerFile);
-            dockerFile.withPath(dockerFilePath)
-                    .withContext(contextPath)
-                    .withExternalHttpEndpoints(); // FIXME this is not really the context
+                    String dockerFilePath = s.getCommands().get(0)[0];
+                    String contextPath = Paths.get(dockerFilePath).getParent().toString();
+                    this.copyInto(dockerFile);
+                    dockerFile.withPath(dockerFilePath)
+                            .withContext(contextPath)
+                            .withExternalHttpEndpoints(); // FIXME this is not really the context
 
-            DistributedApplication.getInstance().substituteResource(this, dockerFile);
-        });
-        
+                    DistributedApplication.getInstance().substituteResource(this, dockerFile);
+                });
+
         // if we need to rebuild the image with more attributes
         if ("true".equals(outputEnvs.get("BUILD_ADD_OTEL_AGENT"))) {
             strategies.stream()
                     .filter(s -> s.getType() == DeploymentStrategy.DeploymentType.MAVEN_POM)
                     .findFirst().ifPresent(s -> {
-                        String imageResourceName = getName() + "-image";
-                        MicroserviceProject<?> containerImage = new MicroserviceProject<>(imageResourceName, resourceType);
+                                String imageResourceName = getName() + "-image";
+                                MicroserviceProject<?> containerImage = new MicroserviceProject<>(imageResourceName, resourceType);
                                 containerImage.strategies = strategies;
                                 containerImage.withImage(outputEnvs.get("BUILD_IMAGE"))
                                         .withPath(this.getPath());
                                 DistributedApplication.getInstance().addResource(containerImage);
-                                
+
                                 DockerFile<?> dockerFile = new DockerFile<>(getName());
                                 String dockerFilePath = this.templateDockerfilePath;
                                 String contextPath = Paths.get(dockerFilePath).getParent().toString();

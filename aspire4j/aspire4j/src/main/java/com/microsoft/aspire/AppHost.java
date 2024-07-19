@@ -34,6 +34,14 @@ public interface AppHost {
     }
 
     /**
+     * Call this to process apps to run locally
+     * @param outputDir
+     */
+    default void processApps(Path outputDir) {
+        new AppProcessor().processApps(this, outputDir);
+    }
+
+    /**
      * Called with a new DistributedApplication instance, allowing for the apphost to configure it.
      */
     void configureApplication(DistributedApplication app);

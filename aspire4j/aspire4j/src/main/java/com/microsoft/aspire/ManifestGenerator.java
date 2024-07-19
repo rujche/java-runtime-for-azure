@@ -98,7 +98,7 @@ class ManifestGenerator {
     }
 
     // This is more-or-less for unit testing purposes
-    String writeManifestToSring(DistributedApplication app) {
+    String writeManifestToString(DistributedApplication app) {
         ObjectMapper objectMapper = prepareObjectMapper(app);
         LOGGER.info("Writing manifest to string");
         try {

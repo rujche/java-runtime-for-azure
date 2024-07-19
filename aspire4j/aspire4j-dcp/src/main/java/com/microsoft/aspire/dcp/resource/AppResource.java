@@ -1,4 +1,4 @@
-package com.microsoft.aspire.dcp;
+package com.microsoft.aspire.dcp.resource;
 
 import com.microsoft.aspire.resources.Resource;
 import com.microsoft.aspire.dcp.model.common.CustomResource;

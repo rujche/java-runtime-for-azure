@@ -29,6 +29,10 @@ public class Executable extends CustomResource<ExecutableSpec, ExecutableStatus>
     public Executable(ExecutableSpec spec) {
         super(spec);
     }
+    
+    public Executable() {
+        super();
+    }
 
     /**
      * Factory method to create a new Executable instance.
@@ -90,4 +94,12 @@ public class Executable extends CustomResource<ExecutableSpec, ExecutableStatus>
     public String getKind() {
         return Dcp.EXECUTABLE_KIND;
     }
+
+    public boolean isLogsAvailable() {
+        return getStatus() != null 
+                && ExecutableState.RUNNING.getState().equals(this.getStatus().getState())
+                && ExecutableState.FINISHED.getState().equals(this.getStatus().getState())
+                && ExecutableState.TERMINATED.getState().equals(this.getStatus().getState());
+    }
+        
 }

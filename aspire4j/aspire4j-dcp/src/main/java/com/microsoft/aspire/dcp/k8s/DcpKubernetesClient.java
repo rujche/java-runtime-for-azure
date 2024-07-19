@@ -1,10 +1,7 @@
-package com.microsoft.aspire.dcp;
+package com.microsoft.aspire.dcp.k8s;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1Status;
-import io.kubernetes.client.util.Streams;
 import okhttp3.Call;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -13,14 +10,19 @@ import okhttp3.Response;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class DcpKubernetesClient extends ApiClient {
 
-    public DcpKubernetesClient() {
-        super();
+    private final ApiClient delegate;
+    
+    public DcpKubernetesClient(ApiClient apiClient) {
+        this.delegate = apiClient;
+    }
+    
+    public ApiClient getDelegate() {
+        return delegate;
     }
 
 //    public DcpKubernetesClient(OkHttpClient httpClient, String basePath) {
@@ -50,8 +52,8 @@ public class DcpKubernetesClient extends ApiClient {
         if (subResource == null || subResource.isEmpty()) throw new IllegalArgumentException("SubResource cannot be null or empty");
 
         HttpUrl.Builder urlBuilder = new HttpUrl.Builder()
-                .scheme(this.getBasePath().startsWith("https") ? "https" : "http")
-                .host(this.getBasePath())
+                .scheme(this.delegate.getBasePath().startsWith("https") ? "https" : "http")
+                .host(this.delegate.getBasePath())
                 .addPathSegments("apis/" + group + "/" + version + (namespaceParameter != null ? "/namespaces/" + namespaceParameter : "") + "/" + plural + "/" + name + "/" + subResource);
 
         if (queryParams != null) {
@@ -65,7 +67,7 @@ public class DcpKubernetesClient extends ApiClient {
                 .get()
                 .build();
 
-        OkHttpClient client = this.getHttpClient().newBuilder()
+        OkHttpClient client = this.delegate.getHttpClient().newBuilder()
                 .readTimeout(timeout, timeUnit)
                 .build();
 

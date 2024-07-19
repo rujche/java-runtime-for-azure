@@ -2,6 +2,11 @@ package com.microsoft.aspire.dcp;
 
 import com.microsoft.aspire.AppHost;
 import com.microsoft.aspire.DistributedApplication;
+import com.microsoft.aspire.dcp.k8s.KubernetesService;
+import com.microsoft.aspire.dcp.metadata.DcpDependencyCheckServiceImpl;
+import com.microsoft.aspire.dcp.metadata.DcpInfo;
+import com.microsoft.aspire.dcp.metadata.DcpOptions;
+import com.microsoft.aspire.dcp.metadata.Locations;
 import com.microsoft.aspire.resources.Container;
 
 import java.util.concurrent.ExecutionException;
