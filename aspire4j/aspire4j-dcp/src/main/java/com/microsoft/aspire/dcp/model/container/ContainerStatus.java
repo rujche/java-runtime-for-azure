@@ -3,7 +3,6 @@ package com.microsoft.aspire.dcp.model.container;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.aspire.dcp.model.common.Conventions;
 import com.microsoft.aspire.dcp.model.common.EnvVar;
-import io.kubernetes.client.openapi.models.V1Status;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -11,7 +10,7 @@ import java.util.List;
 /**
  * Extends the Kubernetes V1Status to include specific status information for containers.
  */
-public class ContainerStatus extends V1Status {
+public class ContainerStatus /*extends V1Status*/ {
     /**
      * Container name displayed in Docker.
      */

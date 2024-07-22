@@ -10,6 +10,7 @@ module com.microsoft.com.aspire4j.dcp {
     requires com.microsoft.aspire.extensions.spring;
     requires java.logging;
     requires com.google.protobuf;
+    requires com.google.common;
 
     opens com.microsoft.aspire.dcp.model.common to com.google.gson;
     opens com.microsoft.aspire.dcp.model.container to com.google.gson;

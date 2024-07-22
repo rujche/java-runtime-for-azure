@@ -14,48 +14,28 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-public class ResourceLogSource<TResource extends CustomResource> implements AsyncIterable<List<LogEntry>> {
+public class ResourceLogSource<TResource extends CustomResource> implements AsyncIterable<List<LogEntry>>, AutoCloseable {
     private static final Logger logger = Logger.getLogger(ResourceLogSource.class.getName());
     private final IKubernetesService kubernetesService;
     private final Version dcpVersion;
     private final TResource resource;
 
+    private static ExecutorService EXECUTORS = Executors.newFixedThreadPool(5);
+    private AsyncChannel<List<LogEntry>> channel = new AsyncChannel<>(EXECUTORS);
+    private List<CompletableFuture<Void>> streamTasks = new ArrayList<>();
+
     public ResourceLogSource(IKubernetesService kubernetesService, Version dcpVersion, TResource resource) {
         this.kubernetesService = kubernetesService;
         this.dcpVersion = dcpVersion;
         this.resource = resource;
+        init();
     }
-
-
-    @Override
-    public AsyncIterator<List<LogEntry>> iterator() {
-        return new AsyncIterator<>() {
-            @Override
-            public boolean hasNext() {
-                return true;
-            }
-
-            @Override
-            public CompletableFuture<List<LogEntry>> next() {
-                return CompletableFuture.supplyAsync(() -> getNextLogEntryList());
-            }
-        };
-    }
-
-    private List<LogEntry> getNextLogEntryList() {
-//        var channel = Channel.CreateUnbounded<LogEntry>(new UnboundedChannelOptions
-//        {
-//            AllowSynchronousContinuations = false,
-//                    SingleReader = true,
-//                    SingleWriter = false
-//        });
-        
-        var channel = new AsyncChannel<LogEntry>();
-
-        var streamTasks = new ArrayList<CompletableFuture<Void>>();
+    
+    private void init() {
         var timestamps = resource instanceof Container;  // Timestamps are available only for Containers as of Aspire P5.
         if (resource instanceof Container && dcpVersion != null && dcpVersion.compareTo(DcpVersion.MinimumVersionAspire_8_1) >= 0) {
             var startupStderrStream = kubernetesService.getLogStreamAsync(resource, Logs.STREAM_TYPE_STARTUP_STD_ERR, true, timestamps);
@@ -64,7 +44,7 @@ public class ResourceLogSource<TResource extends CustomResource> implements Asyn
             var startupStdoutStreamTask = CompletableFuture.runAsync(() -> streamLogsAsync(startupStdoutStream, false, channel));
             streamTasks.add(startupStdoutStreamTask);
 
-            var startupStderrStreamTask = CompletableFuture.runAsync(() -> streamLogsAsync(startupStderrStream, false, channel));
+            var startupStderrStreamTask = CompletableFuture.runAsync(() -> streamLogsAsync(startupStderrStream, true, channel));
             streamTasks.add(startupStderrStreamTask);
         }
 
@@ -76,19 +56,10 @@ public class ResourceLogSource<TResource extends CustomResource> implements Asyn
 
         var stderrStreamTask = CompletableFuture.runAsync(() -> streamLogsAsync(stderrStream, true, channel));
         streamTasks.add(stderrStreamTask);
-
-        CompletableFuture.runAsync(() -> waitForStreamsToCompleteAsync(streamTasks, channel));
-
-        try {
-            return channel.consumeAll().get();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        
     }
 
-    private void waitForStreamsToCompleteAsync(List<CompletableFuture<Void>> streamTasks, AsyncChannel<LogEntry> channel) {
+    private void waitForStreamsToCompleteAsync(List<CompletableFuture<Void>> streamTasks, AsyncChannel<List<LogEntry>> channel) {
         try {
             CompletableFuture.allOf(streamTasks.toArray(new CompletableFuture[0])).join();
 //            channel.writer().complete();
@@ -97,17 +68,42 @@ public class ResourceLogSource<TResource extends CustomResource> implements Asyn
         }
     }
 
-    private void streamLogsAsync(InputStream stream, boolean isError, AsyncChannel<LogEntry> channel) {
+    private void streamLogsAsync(InputStream stream, boolean isError, AsyncChannel<List<LogEntry>> channel) {
         try (var sr = new BufferedReader(new InputStreamReader(stream))) {
             String line;
+//            List<String> buffer = new ArrayList<>(20);
+//            long startTime = System.currentTimeMillis();
+
             while ((line = sr.readLine()) != null) {
+                var logs = List.of(new LogEntry(line, isError));
                 try {
-                    channel.produce(new LogEntry(line, isError)).get();   
+                    channel.produce(logs).get();
                 } catch (Exception e) {
                     logger.warning("Failed to write log entry to channel. Logs for " + resource.getKind() + " " + resource.getMetadata().getName() + " may be incomplete");
-                    return;
                 }
+
+//                buffer.add(line);
+//                if (buffer.size() == 20 || System.currentTimeMillis() - startTime > 1000) {
+//                    try {
+//                        var logs = buffer.stream().map(l -> new LogEntry(l, isError)).toList();
+//                        channel.produce(logs).get();
+//                    } catch (Exception e) {
+//                        logger.warning("Failed to write log entry to channel. Logs for " + resource.getKind() + " " + resource.getMetadata().getName() + " may be incomplete");
+//                        return;
+//                    }
+//                    buffer.clear();
+//                    startTime = System.currentTimeMillis();
+//                }
             }
+            
+//            if (!buffer.isEmpty()) {
+//                try {
+//                    var logs = buffer.stream().map(l -> new LogEntry(l, isError)).toList();
+//                    channel.produce(logs).get();
+//                } catch (Exception e) {
+//                    logger.warning("Failed to write log entry to channel. Logs for " + resource.getKind() + " " + resource.getMetadata().getName() + " may be incomplete");
+//                }
+//            }
         } catch (IOException e) {
 //            if (!cancellationToken.isCancelled()) {
 //                logger.error("Unexpected error happened when capturing logs for {} {}", resource.getKind(), resource.getMetadata().getName(), e);
@@ -117,4 +113,14 @@ public class ResourceLogSource<TResource extends CustomResource> implements Asyn
     }
 
 
+    @Override
+    public void close() throws Exception {
+        CompletableFuture.runAsync(() -> waitForStreamsToCompleteAsync(streamTasks, channel));
+        channel.consumeAll().get();
+    }
+
+    @Override
+    public AsyncIterator<List<LogEntry>> iterator() {
+        return channel.iterator();
+    }
 }

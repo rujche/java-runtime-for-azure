@@ -1,15 +1,17 @@
 package com.microsoft.aspire.dcp.k8s;
 
+import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.Pair;
 import okhttp3.Call;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -51,27 +53,56 @@ public class DcpKubernetesClient extends ApiClient {
         if (name == null || name.isEmpty()) throw new IllegalArgumentException("Name cannot be null or empty");
         if (subResource == null || subResource.isEmpty()) throw new IllegalArgumentException("SubResource cannot be null or empty");
 
-        HttpUrl.Builder urlBuilder = new HttpUrl.Builder()
-                .scheme(this.delegate.getBasePath().startsWith("https") ? "https" : "http")
-                .host(this.delegate.getBasePath())
-                .addPathSegments("apis/" + group + "/" + version + (namespaceParameter != null ? "/namespaces/" + namespaceParameter : "") + "/" + plural + "/" + name + "/" + subResource);
+        String pathSegments = "/apis/" + group + "/" + version + (namespaceParameter != null ? "/namespaces/" + namespaceParameter : "") + "/" + plural + "/" + name + "/" + subResource;
 
+        List<Pair> localVarQueryParams = new ArrayList<>();
         if (queryParams != null) {
             for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-                urlBuilder.addQueryParameter(entry.getKey(), entry.getValue());
+                localVarQueryParams.addAll(this.delegate.parameterToPair(entry.getKey(), entry.getValue()));
             }
         }
 
-        Request request = new Request.Builder()
-                .url(urlBuilder.build())
-                .get()
-                .build();
+        List<Pair> localVarCollectionQueryParams = new ArrayList();
+        Map<String, String> localVarHeaderParams = new HashMap();
+        Map<String, String> localVarCookieParams = new HashMap();
+        Map<String, Object> localVarFormParams = new HashMap();
+        String[] localVarAccepts = new String[]{"text/plain", "application/json", "application/yaml", "application/vnd.kubernetes.protobuf"};
+        String localVarAccept = this.delegate.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
 
-        OkHttpClient client = this.delegate.getHttpClient().newBuilder()
-                .readTimeout(timeout, timeUnit)
-                .build();
+        String[] localVarContentTypes = new String[0];
+        String localVarContentType = this.delegate.selectHeaderContentType(localVarContentTypes);
+        if (localVarContentType != null) {
+            localVarHeaderParams.put("Content-Type", localVarContentType);
+        }
+        String[] localVarAuthNames = new String[]{"BearerToken"};
 
-        Call call = client.newCall(request);
+        Call call = this.delegate.buildCall(null, pathSegments, "GET", localVarQueryParams, localVarCollectionQueryParams,
+                null, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, new ApiCallback() {
+                    @Override
+                    public void onFailure(ApiException e, int statusCode, Map responseHeaders) {
+
+                    }
+
+                    @Override
+                    public void onSuccess(Object result, int statusCode, Map responseHeaders) {
+
+                    }
+
+                    @Override
+                    public void onUploadProgress(long bytesWritten, long contentLength, boolean done) {
+
+                    }
+
+                    @Override
+                    public void onDownloadProgress(long bytesRead, long contentLength, boolean done) {
+
+                    }
+                });
+
+
         Response response = call.execute();
         if (!response.isSuccessful()) {
             throw new ApiException(response.message());

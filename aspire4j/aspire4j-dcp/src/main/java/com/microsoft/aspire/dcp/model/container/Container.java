@@ -44,13 +44,13 @@ public class Container extends CustomResource<ContainerSpec, ContainerStatus> {
     public boolean isLogsAvailable() {
         ContainerStatus status = getStatus();
         return status != null && (
-            ContainerState.STARTING.equals(status.getState()) ||
-            ContainerState.BUILDING.equals(status.getState()) ||
-            ContainerState.RUNNING.equals(status.getState()) ||
-            ContainerState.PAUSED.equals(status.getState()) ||
-            ContainerState.STOPPING.equals(status.getState()) ||
-            ContainerState.EXITED.equals(status.getState()) ||
-            (ContainerState.FAILED_TO_START.equals(status.getState()) && status.getContainerId() != null)
+            ContainerState.STARTING.getState().equals(status.getState()) ||
+            ContainerState.BUILDING.getState().equals(status.getState()) ||
+            ContainerState.RUNNING.getState().equals(status.getState()) ||
+            ContainerState.PAUSED.getState().equals(status.getState()) ||
+            ContainerState.STOPPING.getState().equals(status.getState()) ||
+            ContainerState.EXITED.getState().equals(status.getState()) ||
+            (ContainerState.FAILED_TO_START.getState().equals(status.getState()) && status.getContainerId() != null)
         );
     }
 

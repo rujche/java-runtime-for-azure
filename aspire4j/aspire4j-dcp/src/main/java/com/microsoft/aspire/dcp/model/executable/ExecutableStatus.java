@@ -2,7 +2,6 @@ package com.microsoft.aspire.dcp.model.executable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.aspire.dcp.model.common.EnvVar;
-import io.kubernetes.client.openapi.models.V1Status;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -10,7 +9,7 @@ import java.util.List;
 /**
  * Represents the status of an executable, extending the Kubernetes V1Status.
  */
-public class ExecutableStatus extends V1Status {
+public class ExecutableStatus /*extends V1Status*/ {
     /**
      * The execution ID is the identifier for the actual-state counterpart of the Executable.
      * For ExecutionType == Process it is the process ID, for ExecutionType == IDE it is the IDE session ID.

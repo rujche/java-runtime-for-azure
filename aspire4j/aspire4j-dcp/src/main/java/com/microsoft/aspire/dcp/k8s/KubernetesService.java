@@ -21,6 +21,7 @@ import io.kubernetes.client.util.Watch;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -189,7 +190,7 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
 
     // FIXME: watch
     @Override
-    public <T extends CustomResource> Watch<T> watch(Class<T> clazz, String namespaceParameter) {
+    public <T extends CustomResource> Watch<T> watch(Class<T> clazz, String namespaceParameter, Type watchType) {
         init(this.locations);
         String resourceType = getResourceFor(clazz);
         CustomObjectsApi apiInstance = new CustomObjectsApi(this.getApiClient());
@@ -200,6 +201,7 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
         try {
             if (namespaceNotProvided) {
                 return Watch.createWatch(this.getApiClient(), apiInstance.listClusterCustomObject(group, version, resourceType)
+                                .watch(true)
                         .executeAsync(new ApiCallback<Object>() {
                             @Override
                             public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
@@ -208,22 +210,23 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
 
                             @Override
                             public void onSuccess(Object result, int statusCode, Map<String, List<String>> responseHeaders) {
-
+                                
                             }
 
                             @Override
                             public void onUploadProgress(long bytesWritten, long contentLength, boolean done) {
-
+                                
                             }
 
                             @Override
                             public void onDownloadProgress(long bytesRead, long contentLength, boolean done) {
-
+                                
                             }
-                        }), clazz);
+                        }).clone(), watchType);
             } else {
                 return Watch.createWatch(this.getApiClient(), apiInstance
                         .listNamespacedCustomObject(group, version, namespaceParameter, resourceType)
+                        .watch(true)
                         .executeAsync(new ApiCallback<Object>() {
                             @Override
                             public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
@@ -244,7 +247,7 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
                             public void onDownloadProgress(long bytesRead, long contentLength, boolean done) {
 
                             }
-                        }), clazz);
+                        }), watchType);
             }
         } catch (ApiException e) {
             logApiException(e, namespaceParameter == null ? "CustomObjectsApi#listClusterCustomObject" : "CustomObjectsApi#listNamespacedCustomObject");

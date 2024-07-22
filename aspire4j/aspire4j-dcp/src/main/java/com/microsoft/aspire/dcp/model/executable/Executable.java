@@ -97,9 +97,9 @@ public class Executable extends CustomResource<ExecutableSpec, ExecutableStatus>
 
     public boolean isLogsAvailable() {
         return getStatus() != null 
-                && ExecutableState.RUNNING.getState().equals(this.getStatus().getState())
-                && ExecutableState.FINISHED.getState().equals(this.getStatus().getState())
-                && ExecutableState.TERMINATED.getState().equals(this.getStatus().getState());
+                && (ExecutableState.RUNNING.getState().equals(this.getStatus().getState())
+                || ExecutableState.FINISHED.getState().equals(this.getStatus().getState())
+                || ExecutableState.TERMINATED.getState().equals(this.getStatus().getState())) ;
     }
         
 }
