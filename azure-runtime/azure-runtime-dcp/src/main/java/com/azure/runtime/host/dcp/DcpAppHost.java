@@ -15,9 +15,10 @@ public interface DcpAppHost extends AppHost {
     @Override
     default void run() {
         DcpOptions dcpOptions = new DcpOptions();
-        dcpOptions.setBinPath("/Users/xiada/Documents/Projects/aspire4j/aspire4j/azure-runtime-dcp/bin/darwin_arm64_0.5.7/ext/bin");
-        dcpOptions.setCliPath("/Users/xiada/Documents/Projects/aspire4j/aspire4j/azure-runtime-dcp/bin/darwin_arm64_0.5.7/dcp");
-        dcpOptions.setExtensionsPath("/Users/xiada/Documents/Projects/aspire4j/aspire4j/azure-runtime-dcp/bin/darwin_arm64_0.5.7/ext");
+        String dcpPath = "/Users/xiada/Documents/Projects/aspire4j/azure-runtime/azure-runtime-dcp/bin/darwin_arm64_0.5.7/";
+        dcpOptions.setExtensionsPath(dcpPath + "ext");
+        dcpOptions.setBinPath(dcpPath + "ext/bin");
+        dcpOptions.setCliPath(dcpPath + "dcp");
 
         DcpInfo dcpInfo = new DcpInfo();
         Locations locations = new Locations();
