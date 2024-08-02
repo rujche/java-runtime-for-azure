@@ -7,6 +7,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.4</version>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <groupId>org.springframework.samples</groupId>
@@ -16,6 +17,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>spring-petclinic-microservices-apphost</module>
         <module>spring-petclinic-admin-server</module>
         <module>spring-petclinic-customers-service</module>
         <module>spring-petclinic-vets-service</module>
