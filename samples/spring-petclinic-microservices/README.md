@@ -34,13 +34,13 @@ This requires `Docker` or `Docker desktop` to be installed and running.
 
 Alternatively you can also build all the images on `Podman`, which requires Podman or Podman Desktop to be installed and running.
 ```bash
-./mvnw clean install -PbuildDocker -Dcontainer.executable=podman
+mvn clean install -PbuildDocker -Dcontainer.executable=podman
 ```
 By default, the Docker OCI image is build for an `linux/amd64` platform.
 For other architectures, you could change it by using the `-Dcontainer.platform` maven command line argument.
 For instance, if you target container images for an Apple M2, you could use the command line with the `linux/arm64` architecture:
 ```bash
-./mvnw clean install -P buildDocker -Dcontainer.platform="linux/arm64"
+mvn clean install -P buildDocker -Dcontainer.platform="linux/arm64"
 ```
 
 Once images are ready, you can start them with a single command
@@ -212,8 +212,6 @@ that could be used to implement the Pet Clinic then please join the community th
 ## Contributing
 
 The [issue tracker](https://github.com/spring-petclinic/spring-petclinic-microservices/issues) is the preferred channel for bug reports, features requests and submitting pull requests.
-
-For pull requests, editor preferences are available in the [editor config](.editorconfig) for easy use in common text editors. Read more and download plugins at <http://editorconfig.org>.
 
 
 [Configuration repository]: https://github.com/spring-petclinic/spring-petclinic-microservices-config
