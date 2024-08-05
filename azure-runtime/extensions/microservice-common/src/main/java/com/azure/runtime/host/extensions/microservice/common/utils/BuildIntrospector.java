@@ -8,6 +8,7 @@ import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
@@ -347,7 +348,11 @@ public class BuildIntrospector {
             return Optional.empty();
         }
         String[] parts = coordinate.split(":");
-        return model.getBuild().getPlugins().stream()
+        Build build = model.getBuild();
+        if (build == null) {
+            return Optional.empty();
+        }
+        return build.getPlugins().stream()
                 .filter(plugin -> mavenPluginMatch(plugin, parts[0], parts[1]))
                 .findFirst();
     }

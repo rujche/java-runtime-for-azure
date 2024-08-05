@@ -1,20 +1,37 @@
 package com.azure.example.petclinic;
 
-import com.azure.runtime.spring.boot.SpringBootAppHost;
+import com.azure.runtime.host.DistributedApplication;
+import com.azure.runtime.host.dcp.DcpAppHost;
+import com.azure.runtime.host.extensions.spring.SpringExtension;
 
-public class PetClinicAppHost implements SpringBootAppHost {
-
-    @Override
-    public void configureApplication() {
-        this.addSpringBootProject("org.springframework.samples.petclinic.config", "spring-petclinic-config-server")
-                .addSpringBootProject("org.springframework.samples.petclinic.discovery", "spring-petclinic-discovery-server")
-                .addSpringBootProject("org.springframework.samples.petclinic.client", "spring-petclinic-customers-service")
-                .addSpringBootProject("org.springframework.samples.petclinic.vets", "spring-petclinic-vets-service")
-                .addSpringBootProject("org.springframework.samples.petclinic.visits", "spring-petclinic-visits-service")
-                .addSpringBootProject("org.springframework.samples.petclinic.api", "spring-petclinic-api-gateway");
+public class PetClinicAppHost implements DcpAppHost {
+    
+    public static void main(String[] args) {
+        new PetClinicAppHost().boot(args);
     }
 
-    public static void main(String[] args) {
-        new PetClinicAppHost().run();
+    @Override
+    public void configureApplication(DistributedApplication app) {
+        app.printExtensions();
+        
+        SpringExtension spring = app.withExtension(SpringExtension.class);
+        
+        spring.addSpringProject("spring-petclinic-config-server")
+            .withExternalHttpEndpoints();
+        
+        spring.addSpringProject("spring-petclinic-discovery-server")
+                .withExternalHttpEndpoints();
+        
+        spring.addSpringProject("spring-petclinic-customers-service")
+                .withExternalHttpEndpoints();
+        
+        spring.addSpringProject("spring-petclinic-vets-service")
+                .withExternalHttpEndpoints();
+        
+        spring.addSpringProject("spring-petclinic-visits-service")
+                .withExternalHttpEndpoints();
+        
+        spring.addSpringProject("spring-petclinic-api-gateway")
+                .withExternalHttpEndpoints();
     }
 }
