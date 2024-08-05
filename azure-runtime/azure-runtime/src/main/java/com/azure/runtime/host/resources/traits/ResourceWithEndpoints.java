@@ -80,7 +80,7 @@ public interface ResourceWithEndpoints<T extends Resource<T> & ResourceWithEndpo
     @JsonIgnore
     default List<EndpointReference<?>> getEndpoints() {
         return ResourceUtilities.getEndpointAnnotations(self()).stream()
-            .map(endpointAnnotation -> new EndpointReference<>(self(), endpointAnnotation.getName()))
+            .map(endpointAnnotation -> new EndpointReference<>(self(), endpointAnnotation))
             .collect(Collectors.toList());
     }
 
