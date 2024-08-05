@@ -11,6 +11,13 @@ module com.azure.runtime.host.dcp {
     requires com.fasterxml.jackson.databind;
     requires java.logging;
     requires com.google.protobuf;
+    requires grpc.api;
+    requires grpc.core;
+    requires grpc.stub;
+    requires grpc.protobuf;
+    requires grpc.netty.shaded;
+    requires com.google.common;
+    requires java.annotation;
 
     opens com.azure.runtime.host.dcp.model.common to com.google.gson;
     opens com.azure.runtime.host.dcp.model.container to com.google.gson;

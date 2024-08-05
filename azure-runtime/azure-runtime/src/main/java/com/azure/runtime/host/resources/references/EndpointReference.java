@@ -75,7 +75,7 @@ public class EndpointReference<T extends ResourceWithEndpoints<?>>
         return List.of(resource);
     }
 
-    private Optional<EndpointAnnotation> getEndpointAnnotation() {
+    public Optional<EndpointAnnotation> getEndpointAnnotation() {
         return Optional.ofNullable(endpointAnnotation);
     }
 
