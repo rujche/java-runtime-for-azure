@@ -15,6 +15,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>spring-petclinic-microservices</module>
         <module>storage-explorer</module>
     </modules>
 </project>
