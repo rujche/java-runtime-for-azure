@@ -37,7 +37,7 @@ public class StorageServiceController {
     @Autowired
     public StorageServiceController(final StorageService storageService, final EurekaClient discoveryClient) {
         this.storageService = storageService;
-        this.dateServiceUrl = discoveryClient.getNextServerFromEureka("date-service-spring", false).getHomePageUrl();
+        this.dateServiceUrl = discoveryClient.getNextServerFromEureka("date-service", false).getHomePageUrl();
         LOGGER.info("The discovered date service URL is " + dateServiceUrl);
     }
 
