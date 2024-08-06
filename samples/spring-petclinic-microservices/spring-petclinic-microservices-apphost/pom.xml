@@ -12,6 +12,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mainClass>com.azure.example.petclinic.PetClinicAppHost</mainClass>
         <aspire.isAppHost>true</aspire.isAppHost>
         <!-- This is the property that azd init looks for -->
         <azure.isAppHost>true</azure.isAppHost>
@@ -60,6 +61,28 @@
                     <docker>
                         <host>//./pipe/dockerDesktopLinuxEngine</host>
                     </docker>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>${mainClass}</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <mainClass>${mainClass}</mainClass>
                 </configuration>
             </plugin>
         </plugins>

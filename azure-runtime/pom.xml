@@ -24,7 +24,6 @@
         <module>azure-runtime</module>
         <module>azure-runtime-maven-tools</module>
         <module>azure-runtime-dcp</module>
-        <module>azure-runtime-spring-boot</module>
 
         <module>extensions/azure/azure</module>
         <module>extensions/azure/storage</module>

@@ -1,10 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
 
 name: spring-petclinic-microservices
-metadata:
-    template: azd-init@0.0.0-dev.0
-services:
-    spring-petclinic-microservices:
-        project: .
-        host: containerapp
-        language: java
+services:  
+  app:
+    language: java
+    project: ./spring-petclinic-microservices-apphost/pom.xml
+    host: containerapp

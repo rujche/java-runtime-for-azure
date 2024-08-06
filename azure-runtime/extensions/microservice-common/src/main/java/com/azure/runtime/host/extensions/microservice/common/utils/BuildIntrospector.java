@@ -11,6 +11,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Parent;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -143,7 +144,7 @@ public class BuildIntrospector {
                     dockerImageName = getPluginConfiguration(plugin, "imageName");
                 }
                 if (dockerImageName == null) {
-                    dockerImageName = model.getArtifactId() + ":" + model.getVersion();
+                    dockerImageName = model.getArtifactId() + ":" + getVersion(model);
                 }
                 if (dockerImageName != null && !dockerImageName.contains(":")) {
                     dockerImageName += ":latest";
@@ -168,6 +169,18 @@ public class BuildIntrospector {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private String getVersion(Model model) {
+        String version = model.getVersion();
+        if (version != null) {
+            return version;
+        }
+        Parent parent = model.getParent();
+        if (parent != null) {
+            return parent.getVersion();
+        }
+        return null;
     }
 
     private static String getPluginConfiguration(Plugin plugin, String propertyName) {

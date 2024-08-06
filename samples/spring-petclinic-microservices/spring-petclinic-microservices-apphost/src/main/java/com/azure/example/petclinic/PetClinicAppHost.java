@@ -19,8 +19,7 @@ public class PetClinicAppHost implements DcpAppHost {
         SpringExtension spring = app.withExtension(SpringExtension.class);
         
         EurekaServiceDiscovery discoveryServer = spring
-                .addEurekaServiceDiscovery("eureka")
-                .withPort(8761);
+                .addEurekaServiceDiscovery("eureka");
         
         SpringProject configServer = spring.addSpringProject("spring-petclinic-config-server")
                 .withExternalHttpEndpoints();
