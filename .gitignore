@@ -53,5 +53,7 @@ build/
 **/.mvn/
 /temp/*
 **/output/**
+**/logs/**
+**/bin/**
 
 .azure
