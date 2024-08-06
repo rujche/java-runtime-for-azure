@@ -8,6 +8,15 @@
     <artifactId>spring-petclinic-microservices-apphost</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <aspire.isAppHost>true</aspire.isAppHost>
+        <!-- This is the property that azd init looks for -->
+        <azure.isAppHost>true</azure.isAppHost>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.azure</groupId>

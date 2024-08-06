@@ -13,7 +13,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mainClass>com.azure.example.storageexplorer.StorageExplorerAppHost</mainClass>
-
+        <aspire.isAppHost>true</aspire.isAppHost>
         <!-- This is the property that azd init looks for -->
         <azure.isAppHost>true</azure.isAppHost>
     </properties>
