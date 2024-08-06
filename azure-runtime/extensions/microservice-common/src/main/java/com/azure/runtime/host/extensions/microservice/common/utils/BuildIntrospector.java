@@ -132,7 +132,8 @@ public class BuildIntrospector {
                 // detect whether it's a web application
                 if (findDependency(model, "org.springframework.boot:spring-boot-starter-web").isPresent()) {
                     LOGGER.fine("Found Spring Boot Starter Web dependency!");
-                    outputEnvs.put("SERVER_PORT", DEFAULT_SERVER_PORT);
+                    // FIXME
+//                    outputEnvs.put("SERVER_PORT", DEFAULT_SERVER_PORT);
                 } else if (findDependency(model, "org.springframework.boot:spring-boot-starter-webflux").isPresent()) {
                     LOGGER.fine("Found Spring Boot Starter WebFlux dependency!");
                     outputEnvs.put("SERVER_PORT", DEFAULT_SERVER_PORT);

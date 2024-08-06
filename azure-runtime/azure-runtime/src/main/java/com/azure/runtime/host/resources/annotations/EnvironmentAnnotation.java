@@ -19,4 +19,12 @@ public class EnvironmentAnnotation extends EnvironmentCallbackAnnotation {
             ", value='" + value + '\'' +
             '}';
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getValue() {
+        return value;
+    }
 }

@@ -44,4 +44,23 @@ public class Service extends CustomResource<ServiceSpec, ServiceStatus> {
     public String getKind() {
         return Dcp.SERVICE_KIND;
     }
+
+    public void applyAddressInfoFrom(Service other)
+    {
+        this.getSpec().setPort(other.getSpec().getPort());
+        this.getSpec().setAddress(other.getSpec().getAddress());
+        
+        if (this.getStatus() == null)
+        {
+            this.setStatus(new ServiceStatus());
+        }
+        if (other.getStatus().getEffectiveAddress() != null)
+        {
+            this.getStatus().setEffectiveAddress(other.getStatus().getEffectiveAddress());
+        }
+        if (other.getStatus().getEffectivePort() != null)
+        {
+            this.getStatus().setEffectivePort(other.getStatus().getEffectivePort());
+        }
+    }
 }

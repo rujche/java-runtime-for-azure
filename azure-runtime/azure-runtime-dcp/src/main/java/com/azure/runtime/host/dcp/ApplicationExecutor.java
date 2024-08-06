@@ -16,16 +16,21 @@ import com.azure.runtime.host.dcp.model.common.CustomResource;
 import com.azure.runtime.host.dcp.model.common.EnvVar;
 import com.azure.runtime.host.dcp.model.container.BuildContext;
 import com.azure.runtime.host.dcp.model.container.Container;
+import com.azure.runtime.host.dcp.model.container.ContainerPortSpec;
+import com.azure.runtime.host.dcp.model.container.PortProtocol;
 import com.azure.runtime.host.dcp.model.endpoint.Endpoint;
 import com.azure.runtime.host.dcp.model.executable.Executable;
+import com.azure.runtime.host.dcp.model.service.AddressAllocationModes;
 import com.azure.runtime.host.dcp.model.service.Service;
 import com.azure.runtime.host.dcp.process.Pair;
 import com.azure.runtime.host.dcp.resource.AppResource;
+import com.azure.runtime.host.dcp.resource.ServiceAppResource;
 import com.azure.runtime.host.dcp.utils.RandomNameGenerator;
-import com.azure.runtime.host.dcp.utils.ResourceNameGenerator;
 import com.azure.runtime.host.extensions.spring.resources.SpringProject;
 import com.azure.runtime.host.resources.DockerFile;
 import com.azure.runtime.host.resources.Resource;
+import com.azure.runtime.host.resources.annotations.EndpointAnnotation;
+import com.azure.runtime.host.resources.annotations.EnvironmentAnnotation;
 import com.azure.runtime.host.resources.annotations.KeyValueAnnotation;
 import com.google.gson.reflect.TypeToken;
 import io.kubernetes.client.util.Watch;
@@ -36,8 +41,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -51,6 +60,8 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static com.azure.runtime.host.dcp.utils.ResourceNameGenerator.getObjectNameForResource;
 
 public class ApplicationExecutor {
 
@@ -128,7 +139,6 @@ public class ApplicationExecutor {
             watchResourceChanges();
 
             createServices();
-
             createContainersAndExecutables();
 
 //            for (IDistributedApplicationLifecycleHook lifecycleHook : lifecycleHooks) {
@@ -165,9 +175,63 @@ public class ApplicationExecutor {
     }
 
     private void prepareServices() {
-        // Implementation here
+        List<Resource<?>> services = model.getResources().values().stream()
+                .filter(r -> r.getAnnotations().stream()
+                        .anyMatch(EndpointAnnotation.class::isInstance))
+                .toList();
+
+        // We need to ensure that Services have unique names (otherwise we cannot really distinguish between
+        // services produced by different resources).
+        Set<String> serviceNames = new HashSet<>();
+
+        for (Resource<?> sp : services) {
+            List<EndpointAnnotation> endpoints = sp.getAnnotations().stream().filter(EndpointAnnotation.class::isInstance)
+                    .map(EndpointAnnotation.class::cast)
+                    .toList();
+
+            for (EndpointAnnotation endpoint : endpoints) {
+                String nameSuffix = RandomNameGenerator.getRandomNameSuffix();
+                String candidateServiceName = (endpoints.size() == 1)
+                        ? getObjectNameForResource(sp, nameSuffix, "")
+                        : getObjectNameForResource(sp, endpoint.getName(), nameSuffix);
+
+                String uniqueServiceName = generateUniqueServiceName(serviceNames, candidateServiceName);
+                Service svc = Service.create(uniqueServiceName);
+
+                // _options.getValue().isRandomizePorts() 
+                // FIXME whether to use randomize ports or not
+                Integer port = (false && endpoint.isProxied()) ? null : endpoint.getPort();
+                svc.getSpec().setPort(port);
+                svc.getSpec().setProtocol(PortProtocol.TCP); // FIXME this is hard code
+                svc.getSpec().setAddressAllocationMode(endpoint.isProxied() ? AddressAllocationModes.LOCALHOST.getMode() : AddressAllocationModes.PROXYLESS.getMode());
+
+                // So we can associate the service with the resource that produced it and the endpoint it represents.
+                svc.annotate(CustomResource.RESOURCE_NAME_ANNOTATION, sp.getName());
+                svc.annotate(CustomResource.ENDPOINT_NAME_ANNOTATION, endpoint.getName());
+
+                appResources.add(new ServiceAppResource(sp, svc, endpoint));
+            }
+        }
+
 
     }
+
+    private static String generateUniqueServiceName(Set<String> serviceNames, String candidateName) {
+        int suffix = 1;
+        String uniqueName = candidateName;
+
+        while (!serviceNames.add(uniqueName)) {
+            uniqueName = candidateName + "-" + suffix;
+            suffix++;
+            if (suffix == 100) {
+                // Should never happen, but we do not want to ever get into an infinite loop situation either.
+                throw new IllegalArgumentException("Could not generate a unique name for service '" + candidateName + "'");
+            }
+        }
+
+        return uniqueName;
+    }
+
 
     private void prepareContainers() {
         List<Resource<?>> modelContainerResources = this.model.getResources()
@@ -190,7 +254,7 @@ public class ApplicationExecutor {
 
                 DockerFile dockerFile = (DockerFile) container;
                 String nameSuffix = RandomNameGenerator.getRandomNameSuffix();
-                String containerObjectName = ResourceNameGenerator.getObjectNameForResource(container, nameSuffix, "");
+                String containerObjectName = getObjectNameForResource(container, nameSuffix, "");
                 Container ctr = Container.create(containerObjectName, null);
                 BuildContext build = new BuildContext();
 
@@ -199,6 +263,21 @@ public class ApplicationExecutor {
                 build.setDockerfile(dockerFile.getPath());
                 ctr.getSpec().setBuild(build);
                 ctr.getSpec().setContainerName(containerObjectName); // Use the same name for container orchestrator (Docker, Podman) resource and DCP object name.
+                ctr.getSpec().setPorts(new ArrayList<>());
+                
+                Set<Integer> distinctTargetPorts = new HashSet<>(); 
+                dockerFile.getAnnotations().stream()
+                        .filter(a -> a instanceof EndpointAnnotation)
+                        .forEach(a -> distinctTargetPorts.add(((EndpointAnnotation) a).getTargetPort()));
+                
+                distinctTargetPorts.forEach(
+                        port -> {
+                            ContainerPortSpec containerPortSpec = new ContainerPortSpec();
+                            containerPortSpec.setHostPort(port); // FIXME
+                            containerPortSpec.setContainerPort(port);
+                            ctr.getSpec().getPorts().add(containerPortSpec);
+                        });
+                
 
                 ctr.annotate(CustomResource.RESOURCE_NAME_ANNOTATION, dockerFile.getName());
                 ctr.annotate(CustomResource.OTEL_SERVICE_NAME_ANNOTATION, dockerFile.getName());
@@ -217,7 +296,7 @@ public class ApplicationExecutor {
 //            }
 
                 String nameSuffix = RandomNameGenerator.getRandomNameSuffix();
-                String containerObjectName = ResourceNameGenerator.getObjectNameForResource(container, nameSuffix, "");
+                String containerObjectName = getObjectNameForResource(container, nameSuffix, "");
                 Container ctr = Container.create(containerObjectName, containerImageName);
 
                 ctr.getSpec().setContainerName(containerObjectName); // Use the same name for container orchestrator (Docker, Podman) resource and DCP object name.
@@ -285,6 +364,47 @@ public class ApplicationExecutor {
             executable.getSpec().setWorkingDirectory(project.getPath());
             executable.getSpec().setExecutablePath("mvn");
             executable.getSpec().setArgs(List.of("spring-boot:run"));
+
+
+            Set<EnvVar> envs = new HashSet<>();
+            SpringProject spring = (SpringProject) springProject;
+            spring.getAnnotations().forEach(annotation -> {
+                if (annotation instanceof EnvironmentAnnotation env) {
+                    envs.add(new EnvVar(env.getName(), env.getValue()));
+                }
+//                if (annotation instanceof EndpointAnnotation endpoint) {
+//                    envs.add(new EnvVar(spring.getName() + "_ENDPOINT", endpoint.getTransport() + "://localhost:" + endpoint.getTargetPort()));
+//                }
+//                if (annotation instanceof EnvironmentCallbackAnnotation callback) {
+//                    Map<String, Object> environmentVariables = new HashMap<>();
+//                    callback.getCallback().accept(new EnvironmentCallbackContext(environmentVariables));
+//                    environmentVariables.forEach((envKey, envValue) -> envs.add(new EnvVar(envKey, envValue.toString())));
+//                }
+//                if (annotation instanceof EndpointReferenceAnnotation endpointReference) {
+//                    Resource endpointReferenced = endpointReference.getResource();
+//                    if (endpointReferenced instanceof EurekaServiceDiscovery eureka) {
+//                        EndpointAnnotation endpointAnnotation = eureka.getAnnotations()
+//                                .stream()
+//                                .map(EndpointAnnotation.class::cast)
+//                                .filter(ra -> ra.getName().equals("http"))
+//                                .findFirst().get();
+//                        String eurekaServer = endpointAnnotation.getTransport() + "://localhost:" + endpointAnnotation.getTargetPort();
+//                        envs.add(new EnvVar("EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE", eurekaServer));
+//                    }
+//                    if (endpointReferenced instanceof SpringProject managedComponent && spring.getName().equals("spring-petclinic-config-server")) {
+//                        EndpointAnnotation endpointAnnotation = managedComponent.getAnnotations()
+//                                .stream()
+//                                .map(EndpointAnnotation.class::cast)
+//                                .filter(ra -> ra.getName().equals("http"))
+//                                .findFirst().get();
+//                        String managedComponentUri = endpointAnnotation.getTransport() + "://localhost:" + endpointAnnotation.getTargetPort();
+//                        envs.add(new EnvVar("SPRING_CLOUD_CONFIG_URI", managedComponentUri));
+//                    }
+//                }
+//            });
+                executable.getSpec().setEnv(envs.stream().toList());
+
+            });
 
             this.appResources.add(new AppResource(project, executable));
         }
@@ -481,8 +601,76 @@ public class ApplicationExecutor {
 
 
     private void createServices() {
-        // Implementation herex
+        List<ServiceAppResource> needAddressAllocated = appResources.stream().filter(r -> r instanceof ServiceAppResource)
+                .filter(r -> ((ServiceAppResource) r).getService().hasCompleteAddress() && ((ServiceAppResource) r).getService().getSpec().getAddressAllocationMode().equals(AddressAllocationModes.PROXYLESS.getMode()))
+                .map(r -> (ServiceAppResource) r)
+                .toList();
+
+        if (needAddressAllocated.isEmpty()) {
+            return;
+        }
+        createResourcesAsync(Service.class);
+        
+        kubernetesService.watch(Service.class, null, new TypeToken<Watch.Response<Service>>() {
+        }.getType()).forEachRemaining(event -> {
+            if ("BOOKMARK".equals(event.type)) {
+                return;
+            }
+
+            Service updated = event.object;
+            Optional<ServiceAppResource> svcOptional = needAddressAllocated.stream().filter(r -> r.getService().getMetadata().getName().equals(updated.getMetadata().getName())).findFirst();
+            if (!svcOptional.isPresent()) {
+                return;
+            }
+            ServiceAppResource serviceAppResource = svcOptional.get();
+            Service service = serviceAppResource.getService();
+            if (service.hasCompleteAddress()) {
+                service.applyAddressInfoFrom(updated);
+                needAddressAllocated.remove(serviceAppResource);
+            }
+            
+            if (needAddressAllocated.isEmpty()) {
+                return;
+            }
+        });
+        
+        
+        for (AppResource appResource : needAddressAllocated) {
+            ServiceAppResource serviceAppResource = (ServiceAppResource) appResource;
+            Service service = serviceAppResource.getService();
+
+            Service dcpService = kubernetesService.get(Service.class, service.getMetadata().getName(), null);
+            if (dcpService.hasCompleteAddress()) {
+                service.applyAddressInfoFrom(dcpService);
+            } else {
+                LOGGER.warning("Unable to allocate a network port for service " + service.getMetadata().getName() + ". service may be unreachable and its clients may not work properly.");
+            }
+
+        }
     }
+
+    private <T extends CustomResource> void createResourcesAsync(Class<T> clazz) {
+        Executors.newFixedThreadPool(1).submit(() -> {
+            try {
+                List<T> resourcesToCreate = appResources.stream()
+                        .map(AppResource::getDcpResource)
+                        .filter(resource -> resource.getClass().equals(clazz))
+                        .map(resource -> (T) resource)
+                        .toList();
+
+                if (resourcesToCreate.isEmpty()) {
+                    return;
+                }
+
+                for (T res : resourcesToCreate) {
+                    kubernetesService.create(clazz, res);
+                }
+            } catch (CancellationException ex) {
+                LOGGER.warning("Cancellation during creation of resources." + ex.getMessage());
+            }
+        });
+    }
+
 
     class Graph {
         private final List<List<Integer>> adjList;
