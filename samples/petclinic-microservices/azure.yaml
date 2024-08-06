@@ -4,5 +4,5 @@ name: spring-petclinic-microservices
 services:  
   app:
     language: java
-    project: ./spring-petclinic-microservices-apphost/pom.xml
+    project: ./apphost/pom.xml
     host: containerapp

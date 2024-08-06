@@ -10,21 +10,20 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>org.springframework.samples</groupId>
-    <artifactId>spring-petclinic-microservices</artifactId>
+    <groupId>com.azure.sample.petclinic.microservice</groupId>
+    <artifactId>petclinic-microservices</artifactId>
     <version>3.2.4</version>
-    <name>${project.artifactId}</name>
     <packaging>pom</packaging>
 
     <modules>
-        <module>spring-petclinic-microservices-apphost</module>
-        <module>spring-petclinic-admin-server</module>
-        <module>spring-petclinic-customers-service</module>
-        <module>spring-petclinic-vets-service</module>
-        <module>spring-petclinic-visits-service</module>
-        <module>spring-petclinic-config-server</module>
-        <module>spring-petclinic-discovery-server</module>
-        <module>spring-petclinic-api-gateway</module>
+        <module>apphost</module>
+        <module>admin-server</module>
+        <module>customers-service</module>
+        <module>vets-service</module>
+        <module>visits-service</module>
+        <module>config-server</module>
+        <module>discovery-server</module>
+        <module>api-gateway</module>
     </modules>
 
     <properties>

@@ -3,14 +3,14 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.springframework.samples.petclinic.visits</groupId>
-    <artifactId>spring-petclinic-visits-service</artifactId>
+    <groupId>com.azure.sample.petclinic.microservice</groupId>
+    <artifactId>visits-service</artifactId>
     <packaging>jar</packaging>
     <description>Spring PetClinic Visits Service</description>
 
     <parent>
-        <groupId>org.springframework.samples</groupId>
-        <artifactId>spring-petclinic-microservices</artifactId>
+        <groupId>com.azure.sample.petclinic.microservice</groupId>
+        <artifactId>petclinic-microservices</artifactId>
         <version>3.2.4</version>
     </parent>
 
