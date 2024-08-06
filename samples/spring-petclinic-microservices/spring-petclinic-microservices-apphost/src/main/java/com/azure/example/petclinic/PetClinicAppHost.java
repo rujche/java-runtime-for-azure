@@ -2,7 +2,9 @@ package com.azure.example.petclinic;
 
 import com.azure.runtime.host.DistributedApplication;
 import com.azure.runtime.host.dcp.DcpAppHost;
+import com.azure.runtime.host.extensions.microservice.common.resources.EurekaServiceDiscovery;
 import com.azure.runtime.host.extensions.spring.SpringExtension;
+import com.azure.runtime.host.extensions.spring.resources.SpringProject;
 
 public class PetClinicAppHost implements DcpAppHost {
     
@@ -16,22 +18,41 @@ public class PetClinicAppHost implements DcpAppHost {
         
         SpringExtension spring = app.withExtension(SpringExtension.class);
         
-        spring.addSpringProject("spring-petclinic-config-server")
-            .withExternalHttpEndpoints();
+        EurekaServiceDiscovery discoveryServer = spring
+                .addEurekaServiceDiscovery("eureka")
+                .withPort(8761);
         
-        spring.addSpringProject("spring-petclinic-discovery-server")
+        SpringProject configServer = spring.addSpringProject("spring-petclinic-config-server")
                 .withExternalHttpEndpoints();
-        
+//        
+//        SpringProject discoveryServer = spring.addSpringProject("spring-petclinic-discovery-server")
+//                .withDependency(configServer)
+//                .withExternalHttpEndpoints();
+
         spring.addSpringProject("spring-petclinic-customers-service")
-                .withExternalHttpEndpoints();
-        
+                .withDependency(configServer)
+                .withDependency(discoveryServer)
+                .withExternalHttpEndpoints()
+                .withReference(discoveryServer);
+
         spring.addSpringProject("spring-petclinic-vets-service")
-                .withExternalHttpEndpoints();
-        
+                .withDependency(configServer)
+                .withDependency(discoveryServer)
+                .withExternalHttpEndpoints()
+                .withReference(discoveryServer);
+
         spring.addSpringProject("spring-petclinic-visits-service")
-                .withExternalHttpEndpoints();
-        
+                .withDependency(configServer)
+                .withDependency(discoveryServer)
+                .withExternalHttpEndpoints()
+                .withReference(discoveryServer);
+
         spring.addSpringProject("spring-petclinic-api-gateway")
-                .withExternalHttpEndpoints();
+                .withDependency(configServer)
+                .withDependency(discoveryServer)
+                .withExternalHttpEndpoints()
+                .withReference(discoveryServer);
+        
+        
     }
 }

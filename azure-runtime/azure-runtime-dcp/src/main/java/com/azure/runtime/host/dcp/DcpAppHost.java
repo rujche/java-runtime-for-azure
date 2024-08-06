@@ -7,7 +7,6 @@ import com.azure.runtime.host.dcp.metadata.DcpDependencyCheckServiceImpl;
 import com.azure.runtime.host.dcp.metadata.DcpInfo;
 import com.azure.runtime.host.dcp.metadata.DcpOptions;
 import com.azure.runtime.host.dcp.metadata.Locations;
-import com.azure.runtime.host.resources.Container;
 
 import java.util.concurrent.ExecutionException;
 
@@ -24,8 +23,8 @@ public interface DcpAppHost extends AppHost {
         Locations locations = new Locations();
 
         // FIXME: this is just for test, remove it later
-        DistributedApplication.getInstance()
-                .addResource(new Container<>("for-test-redis").withImage("docker.io/library/redis:7.2"));
+//        DistributedApplication.getInstance()
+//                .addResource(new Container<>("for-test-redis").withImage("docker.io/library/redis:7.2"));
 
         DcpDependencyCheckServiceImpl dcpDependencyCheckService = new DcpDependencyCheckServiceImpl(dcpOptions);
 

@@ -114,6 +114,7 @@ class ManifestGenerator {
     void writeManifestToFile(DistributedApplication app) {
         ObjectMapper objectMapper = prepareObjectMapper(app);
         LOGGER.info("Writing manifest to file");
+        LOGGER.info("Writing manifest to " + outputPath.toFile().getPath());
         try {
             objectMapper.writerWithDefaultPrettyPrinter()
                 .writeValue(new File(outputPath.toFile(), "aspire-manifest.json"), app.manifest);

@@ -15,6 +15,7 @@
         <mainClass>com.azure.example.storageexplorer.StorageExplorerAppHost</mainClass>
         <aspire.isAppHost>true</aspire.isAppHost>
         <!-- This is the property that azd init looks for -->
+        <aspire.isAppHost>true</aspire.isAppHost>
         <azure.isAppHost>true</azure.isAppHost>
     </properties>
 

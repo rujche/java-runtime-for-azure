@@ -1,9 +1,6 @@
 package com.azure.runtime.host.dcp;
 
 import com.azure.runtime.host.DistributedApplication;
-import com.azure.runtime.host.extensions.spring.resources.SpringProject;
-import com.azure.runtime.host.resources.DockerFile;
-import com.azure.runtime.host.resources.Resource;
 import com.azure.runtime.host.dcp.k8s.IKubernetesService;
 import com.azure.runtime.host.dcp.k8s.KubernetesService;
 import com.azure.runtime.host.dcp.logging.AsyncChannel;
@@ -26,6 +23,9 @@ import com.azure.runtime.host.dcp.process.Pair;
 import com.azure.runtime.host.dcp.resource.AppResource;
 import com.azure.runtime.host.dcp.utils.RandomNameGenerator;
 import com.azure.runtime.host.dcp.utils.ResourceNameGenerator;
+import com.azure.runtime.host.extensions.spring.resources.SpringProject;
+import com.azure.runtime.host.resources.DockerFile;
+import com.azure.runtime.host.resources.Resource;
 import com.azure.runtime.host.resources.annotations.KeyValueAnnotation;
 import com.google.gson.reflect.TypeToken;
 import io.kubernetes.client.util.Watch;
@@ -484,9 +484,79 @@ public class ApplicationExecutor {
         // Implementation herex
     }
 
+    class Graph {
+        private final List<List<Integer>> adjList;
+        private final int n;
+        private final List<Integer> inDegree;
+
+        public Graph(int n) {
+            this.n = n;
+            this.adjList = new ArrayList<>();
+            for (int i = 0; i < n; i++) {
+                this.adjList.add(new ArrayList<>());
+            }
+            this.inDegree = new ArrayList<>();
+            for (int i = 0; i < n; i++) {
+                inDegree.add(0);
+            }
+        }
+
+        public void addEdge(int u, int v) {
+            this.adjList.get(u).add(v);
+            this.inDegree.set(v, this.inDegree.get(v) + 1);
+        }
+
+        public List<Integer> topologicalSort() {
+            List<Integer> inDegree = new ArrayList<>(this.inDegree);
+
+            List<Integer> order = new ArrayList<>();
+            for (int i = 0; i < n; i++) {
+                if (inDegree.get(i) == 0) {
+                    order.add(i);
+                }
+            }
+
+            for (int i = 0; i < order.size(); i++) {
+                int u = order.get(i);
+                for (int v : adjList.get(u)) {
+                    inDegree.set(v, inDegree.get(v) - 1);
+                    if (inDegree.get(v) == 0) {
+                        order.add(v);
+                    }
+                }
+            }
+
+            return order;
+        }
+        
+        public int getInDegree(int u) {
+            return this.inDegree.get(u);
+        }
+        
+    }
+    
+    
     private void createContainersAndExecutables() {
-        // Implementation here
-        this.appResources.forEach(appResource -> {
+        // order the dependencies
+        Graph graph = new Graph(appResources.size());
+        Map<String, Integer> appResourceIndex = new ConcurrentHashMap<>();
+        for (int i = 0; i < appResources.size(); i++) {
+            appResourceIndex.put(appResources.get(i).getModelResource().getName(), i);
+        }
+        
+        for (int i = 0; i < appResources.size(); i++) {
+            AppResource appResource = appResources.get(i);
+            if (appResource.getModelResource() instanceof  SpringProject) {
+                SpringProject springProject = (SpringProject) appResource.getModelResource();
+                for (Resource dependency : springProject.getDependencies()) {
+                    int j = appResourceIndex.get(dependency.getName());
+                    graph.addEdge(i, j);
+                }
+            }
+        }
+        graph.topologicalSort().reversed().forEach(i -> {
+            AppResource appResource = appResources.get(i);
+            boolean hasDependency = graph.getInDegree(i) > 0;
             if (appResource.getDcpResource() instanceof Container) {
                 Container container = (Container) appResource.getDcpResource();
                 this.kubernetesService.create(Container.class, container);
@@ -496,9 +566,43 @@ public class ApplicationExecutor {
             if (appResource.getDcpResource() instanceof Executable) {
                 Executable executable = (Executable) appResource.getDcpResource();
                 this.kubernetesService.create(Executable.class, executable);
+
+                if (hasDependency) {
+                    while (true) {
+                        
+                        Executable status = this.kubernetesService.get(Executable.class, executable.getMetadata().getName(), null);
+                        try {
+                            Thread.sleep(Duration.ofSeconds(3));
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        if ("Running".equals(status.getStatus().getState())) {
+                            break;
+                        }
+                    }
+                    
+                }
+                
                 System.out.println("Executable created: " + executable.getMetadata().getName());
             }
         });
+        
+//        // Implementation here
+//        this.appResources.forEach(appResource -> {
+//            
+//            
+//            if (appResource.getDcpResource() instanceof Container) {
+//                Container container = (Container) appResource.getDcpResource();
+//                this.kubernetesService.create(Container.class, container);
+//                System.out.println("Container created: " + container.getMetadata().getName());
+//            }
+//
+//            if (appResource.getDcpResource() instanceof Executable) {
+//                Executable executable = (Executable) appResource.getDcpResource();
+//                this.kubernetesService.create(Executable.class, executable);
+//                System.out.println("Executable created: " + executable.getMetadata().getName());
+//            }
+//        });
 
     }
 
