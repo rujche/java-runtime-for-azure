@@ -35,10 +35,10 @@ public abstract class MicroserviceExtension implements Extension {
 
     /**
      * Adds a new Config Server service to the app host.
-     * @param name The name of the Config Server service.
-     * @return A new {@link ConfigServerServiceDiscovery} instance that can be used to configure Eureka.
+     * @param name The name of the Config Server.
+     * @return A new {@link ConfigServerServiceDiscovery} instance that can be used to configure Config Server.
      */
-    public ConfigServerServiceDiscovery addConfigServerServiceDiscovery(String name) {
+    public ConfigServerServiceDiscovery addConfigServer(String name) {
         return DistributedApplication.getInstance().addResource(new ConfigServerServiceDiscovery(name));
     }
 }
