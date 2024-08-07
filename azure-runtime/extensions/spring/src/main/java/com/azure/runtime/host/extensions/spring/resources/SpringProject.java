@@ -31,7 +31,9 @@ public class SpringProject extends MicroserviceProject<SpringProject>
         
         super.getIntrospectOutputEnvs().forEach((k, v) -> {
             if ("BUILD_EUREKA_CLIENT_ENABLED".equals(k)) {
-                withEnvironment("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "${services__eureka__http__0}/eureka/");
+                withEnvironment("eureka.client.serviceUrl.defaultZone", "{eureka.bindings.https.url}/eureka/");
+//                withEnvironment("EUREKA_INSTANCE_PREFERIPADDRESS", "true");
+                withEnvironment("CONFIG_SERVER_URL", "{config-server.bindings.http.url}");
             }
         });
         
