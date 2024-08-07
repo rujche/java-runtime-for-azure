@@ -16,6 +16,5 @@
 
     <modules>
         <module>storage-explorer</module>
-        <module>spring-petclinic-microservices</module>
     </modules>
 </project>
