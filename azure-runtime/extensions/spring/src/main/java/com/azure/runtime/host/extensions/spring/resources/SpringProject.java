@@ -24,7 +24,19 @@ public class SpringProject extends MicroserviceProject<SpringProject>
         super(type, name);
 //        withEnvironment("spring.application.name", name);
     }
-    
+
+    @Override
+    public void introspect() {
+        super.introspect();
+        
+        super.getIntrospectOutputEnvs().forEach((k, v) -> {
+            if ("BUILD_EUREKA_CLIENT_ENABLED".equals(k)) {
+                withEnvironment("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "${services__eureka__http__0}/eureka/");
+            }
+        });
+        
+    }
+
     public SpringProject withDependency(Resource<?> resource) {
         this.dependencies.add(new DependencyResource(resource.getType(), resource.getName()));
         return self();

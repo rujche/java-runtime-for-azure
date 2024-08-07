@@ -138,6 +138,11 @@ public class BuildIntrospector {
                     LOGGER.fine("Found Spring Boot Starter WebFlux dependency!");
                     outputEnvs.put("SERVER_PORT", DEFAULT_SERVER_PORT);
                 }
+                
+                if (findDependency(model,"org.springframework.cloud:spring-cloud-starter-netflix-eureka-client").isPresent()) {
+                    LOGGER.fine("Found eureka client");
+                    outputEnvs.put("BUILD_EUREKA_CLIENT_ENABLED", "true");
+                }
 
                 // determine the docker image name
                 var dockerImageName = getPluginConfiguration(plugin, "image.name");

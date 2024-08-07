@@ -197,4 +197,8 @@ public class MicroserviceProject<T extends MicroserviceProject<T>> extends Conta
         }
         return List.of();
     }
+
+    protected Map<String, String> getIntrospectOutputEnvs() {
+        return introspectOutputEnvs;
+    }
 }
