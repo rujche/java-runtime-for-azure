@@ -21,36 +21,37 @@ public class PetClinicAppHost implements DcpAppHost {
         EurekaServiceDiscovery discoveryServer = spring
                 .addEurekaServiceDiscovery("eureka");
         
-        SpringProject configServer = spring.addSpringProject("spring-petclinic-config-server")
+        SpringProject configServer = spring.addSpringProject("config-server")
+                .withPath("spring-petclinic-config-server")
                 .withHttpEndpoint(8888)
                 .withExternalHttpEndpoints();
 
-        spring.addSpringProject("spring-petclinic-customers-service")
+        spring.addSpringProject("customers-service")
+                .withPath("spring-petclinic-customers-service")
                 .withDependency(configServer)
                 .withDependency(discoveryServer)
                 .withEnvironment("SERVER_PORT", "8081")
-                .withEnvironment("SPRING_APPLICATION_NAME", "customers-service")
                 .withReference(discoveryServer);
 
-        spring.addSpringProject("spring-petclinic-vets-service")
+        spring.addSpringProject("vets-service")
+                .withPath("spring-petclinic-vets-service")
                 .withDependency(configServer)
                 .withDependency(discoveryServer)
                 .withEnvironment("SERVER_PORT", "8082")
-                .withEnvironment("SPRING_APPLICATION_NAME", "vets-service")
                 .withReference(discoveryServer);
 
-        spring.addSpringProject("spring-petclinic-visits-service")
+        spring.addSpringProject("visits-service")
+                .withPath("spring-petclinic-visits-service")
                 .withDependency(configServer)
                 .withDependency(discoveryServer)
                 .withEnvironment("SERVER_PORT", "8083")
-                .withEnvironment("SPRING_APPLICATION_NAME", "visits-service")
                 .withReference(discoveryServer);
 
-        spring.addSpringProject("spring-petclinic-api-gateway")
+        spring.addSpringProject("api-gateway")
+                .withPath("spring-petclinic-api-gateway")
                 .withDependency(configServer)
                 .withDependency(discoveryServer)
                 .withEnvironment("SERVER_PORT", "8080")
-                .withEnvironment("SPRING_APPLICATION_NAME", "api-gateway")
                 .withReference(discoveryServer);
     }
 }
