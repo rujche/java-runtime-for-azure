@@ -759,6 +759,7 @@ public class ApplicationExecutor {
                 this.kubernetesService.create(Container.class, container);
                 System.out.println("Container created: " + container.getMetadata().getName());
                 try {
+                    // FIXME should check the status of the container
                     TimeUnit.SECONDS.sleep(5);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -780,6 +781,9 @@ public class ApplicationExecutor {
                         }
                         if ("Running".equals(status.getStatus().getState())) {
                             break;
+                        } else {
+                            System.out.println("Waiting for executable to be running: " + executable.getMetadata().getName());
+                            System.out.println("Current status: " + status.getStatus().getState());
                         }
                     }
                     

@@ -5,6 +5,7 @@ import com.azure.runtime.host.resources.Resource;
 import com.azure.runtime.host.resources.ResourceType;
 import com.azure.runtime.host.resources.traits.IntrospectiveResource;
 import com.azure.runtime.host.resources.traits.ResourceWithTemplate;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ public class SpringProject extends MicroserviceProject<SpringProject>
                             implements ResourceWithTemplate<SpringProject>, IntrospectiveResource {    
     private static final ResourceType SPRING_PROJECT = ResourceType.fromString("project.spring.v0");
 
+    @JsonIgnore
     private List<Resource<?>> dependencies; 
     
     public SpringProject(String name) {
@@ -22,7 +24,7 @@ public class SpringProject extends MicroserviceProject<SpringProject>
 
     private SpringProject(ResourceType type, String name) {
         super(type, name);
-//        withEnvironment("spring.application.name", name);
+        withEnvironment("spring.application.name", name);
     }
 
     @Override
@@ -40,9 +42,14 @@ public class SpringProject extends MicroserviceProject<SpringProject>
         
     }
 
-    public SpringProject withDependency(Resource<?> resource) {
+    private SpringProject withDependency(Resource<?> resource) {
         this.dependencies.add(new DependencyResource(resource.getType(), resource.getName()));
         return self();
+    }
+
+    @Override
+    public SpringProject withReference(Resource<?> resource) {
+        return super.withReference(resource).withDependency(resource);
     }
 
     public List<Resource<?>> getDependencies() {
