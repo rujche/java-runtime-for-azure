@@ -226,7 +226,7 @@ public class BuildIntrospector {
 
             if (parentHasSpringBootMavenPlugin.get()) {
                 if (!Boolean.TRUE.equals(ParentBuiltStatus.get(parentAbsolutePath))) {
-                    deploymentStrategy.withCommand(new String[] {"mvn", "clean", "spring-boot:build-image", "-DskipTests", "-T" + Runtime.getRuntime().availableProcessors(), "-f" + parentRelativePath});
+//                    deploymentStrategy.withCommand(new String[] {"mvn", "clean", "spring-boot:build-image", "-DskipTests", "-T" + Runtime.getRuntime().availableProcessors(), "-f" + parentRelativePath});
                     ParentBuiltStatus.put(parentAbsolutePath, true);
                 } else {
                     // we don't need to rebuild again
