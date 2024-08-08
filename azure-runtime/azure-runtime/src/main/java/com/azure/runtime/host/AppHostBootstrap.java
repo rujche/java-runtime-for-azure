@@ -23,6 +23,7 @@ class AppHostBootstrap {
 
     private static final String PROPERTY_OUTPUT_DIR = "--output-dir";
     private static final String PROPERTY_MODE = "--mode";
+    public static final String MODE_LOCAL = "local";
 
     static class Parameter{
         final List<String> names;
@@ -97,7 +98,7 @@ class AppHostBootstrap {
             LOGGER.fine("Parsed runtime parameters: " + parsedParameters);
         }
 
-        if (parsedParameters.get(PROPERTY_MODE).equals("local")) {
+        if (parsedParameters.get(PROPERTY_MODE).equals(MODE_LOCAL)) {
             // FIXME we should find another way to trigger the DistributedApplication construction
             final Path outputDir = Paths.get(parsedParameters.get(PROPERTY_OUTPUT_DIR)).toAbsolutePath();
             appHost.processApps(outputDir);
