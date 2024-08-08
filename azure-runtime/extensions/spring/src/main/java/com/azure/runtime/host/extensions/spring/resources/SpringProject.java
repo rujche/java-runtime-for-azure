@@ -38,6 +38,10 @@ public class SpringProject extends MicroserviceProject<SpringProject>
                 withEnvironment("EUREKA_INSTANCE_PREFERIPADDRESS", "true");
                 withEnvironment("CONFIG_SERVER_URL", "{config-server.bindings.https.url}");
             }
+            if ("BUILD_EXPORTER_ZIPKIN_ENABLED".equals(k)) {
+                // https://github.com/spring-cloud/spring-cloud-netflix/issues/2541
+                withEnvironment("SPRING_ZIPKIN_BASEURL", "{config-server.bindings.https.url}");
+            }
         });
         
     }

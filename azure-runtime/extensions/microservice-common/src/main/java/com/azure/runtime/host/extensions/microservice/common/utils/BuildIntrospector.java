@@ -143,6 +143,10 @@ public class BuildIntrospector {
                     LOGGER.fine("Found eureka client");
                     outputEnvs.put("BUILD_EUREKA_CLIENT_ENABLED", "true");
                 }
+                if (findDependency(model,"io.opentelemetry:opentelemetry-exporter-zipkin").isPresent()) {
+                    LOGGER.fine("Found export to zipkin dependency.");
+                    outputEnvs.put("BUILD_EXPORTER_ZIPKIN_ENABLED", "true");
+                }
 
                 // determine the docker image name
                 var dockerImageName = getPluginConfiguration(plugin, "image.name");
