@@ -2,8 +2,9 @@ package com.azure.runtime.host.extensions.microservice.common;
 
 import com.azure.runtime.host.DistributedApplication;
 import com.azure.runtime.host.Extension;
-import com.azure.runtime.host.extensions.microservice.common.resources.ConfigServerServiceDiscovery;
+import com.azure.runtime.host.extensions.microservice.common.resources.ConfigServerService;
 import com.azure.runtime.host.extensions.microservice.common.resources.EurekaServiceDiscovery;
+import com.azure.runtime.host.extensions.microservice.common.resources.ZipkinServerService;
 
 public abstract class MicroserviceExtension implements Extension {
     private final String name;
@@ -36,9 +37,18 @@ public abstract class MicroserviceExtension implements Extension {
     /**
      * Adds a new Config Server service to the app host.
      * @param name The name of the Config Server.
-     * @return A new {@link ConfigServerServiceDiscovery} instance that can be used to configure Config Server.
+     * @return A new {@link ConfigServerService} instance that can be used to configure Config Server.
      */
-    public ConfigServerServiceDiscovery addConfigServer(String name) {
-        return DistributedApplication.getInstance().addResource(new ConfigServerServiceDiscovery(name));
+    public ConfigServerService addConfigServer(String name) {
+        return DistributedApplication.getInstance().addResource(new ConfigServerService(name));
+    }
+
+    /**
+     * Adds a new Zipkin Server service to the app host.
+     * @param name The name of the Zipkin Server.
+     * @return A new {@link ZipkinServerService} instance that can be used to configure Zipkin Server.
+     */
+    public ZipkinServerService addZipkinServer(String name) {
+        return DistributedApplication.getInstance().addResource(new ZipkinServerService(name));
     }
 }

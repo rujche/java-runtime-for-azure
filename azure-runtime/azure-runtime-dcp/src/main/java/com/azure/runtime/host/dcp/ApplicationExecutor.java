@@ -41,6 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +97,11 @@ public class ApplicationExecutor {
     private IKubernetesService kubernetesService;
     private Map<String, Pair<Boolean, Boolean>> resourceLogState = new ConcurrentHashMap();
     private final ExecutorService executor = Executors.newFixedThreadPool(10);
+
+    private final static Set<String> LOCAL_IGNORE_ENV_KEYS = new HashSet<>(Arrays.asList(
+        "eureka.client.serviceUrl.defaultZone",
+        "CONFIG_SERVER_URL"
+    ));
 
     public ApplicationExecutor(
 //            Logger logger,
@@ -371,7 +377,9 @@ public class ApplicationExecutor {
             SpringProject spring = (SpringProject) springProject;
             spring.getAnnotations().forEach(annotation -> {
                 if (annotation instanceof EnvironmentAnnotation env) {
-                    envs.add(new EnvVar(env.getName(), env.getValue()));
+                    if (!LOCAL_IGNORE_ENV_KEYS.contains(env.getName())) {
+                        envs.add(new EnvVar(env.getName(), env.getValue()));
+                    }
                 }
 //                if (annotation instanceof EndpointAnnotation endpoint) {
 //                    envs.add(new EnvVar(spring.getName() + "_ENDPOINT", endpoint.getTransport() + "://localhost:" + endpoint.getTargetPort()));
