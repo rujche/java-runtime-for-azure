@@ -100,7 +100,8 @@ public class ApplicationExecutor {
 
     private final static Set<String> LOCAL_IGNORE_ENV_KEYS = new HashSet<>(Arrays.asList(
         "eureka.client.serviceUrl.defaultZone",
-        "CONFIG_SERVER_URL"
+        "CONFIG_SERVER_URL",
+        "SPRING_ZIPKIN_BASEURL"
     ));
 
     public ApplicationExecutor(
