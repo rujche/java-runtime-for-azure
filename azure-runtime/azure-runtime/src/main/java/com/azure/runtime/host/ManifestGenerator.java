@@ -1,26 +1,27 @@
 package com.azure.runtime.host;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.file.*;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.azure.runtime.host.implementation.utils.json.RelativePathModule;
 import com.azure.runtime.host.implementation.utils.json.CustomSerializerModifier;
+import com.azure.runtime.host.implementation.utils.json.RelativePathModule;
 import com.azure.runtime.host.resources.traits.ResourceWithLifecycle;
 import com.azure.runtime.host.resources.traits.ResourceWithTemplate;
 import com.azure.runtime.host.utils.FileUtilities;
 import com.azure.runtime.host.utils.templates.TemplateFileOutput;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // Not public API
 class ManifestGenerator {
@@ -137,12 +138,13 @@ class ManifestGenerator {
     }
 
     private void callLifecyclePrecommitHook(DistributedApplication app) {
-        Set<ResourceWithLifecycle> processedResources = new HashSet<>();
-        Set<ResourceWithLifecycle> currentResources = new HashSet<>(app.manifest.getResources().values());
+        // want to preserve the order
+        Set<ResourceWithLifecycle> processedResources = new LinkedHashSet<>();
+        Set<ResourceWithLifecycle> currentResources = new LinkedHashSet<>(app.manifest.getResources().values());
 
         while (!currentResources.isEmpty()) {
             // Create a snapshot of current resources to iterate over
-            Set<ResourceWithLifecycle> snapshot = new HashSet<>(currentResources);
+            Set<ResourceWithLifecycle> snapshot = new LinkedHashSet<>(currentResources);
             for (ResourceWithLifecycle resource : snapshot) {
                 if (!processedResources.contains(resource)) {
                     resource.onResourcePrecommit();

@@ -24,11 +24,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,6 +41,9 @@ public class BuildIntrospector {
 
     private final Set<DeploymentStrategy> strategies = new TreeSet<>();
     private String DEFAULT_SERVER_PORT = "8081";
+    
+    private static Map<String, Model> ModelMap = new HashMap<>();
+    private static Map<String, Boolean> ParentBuiltStatus = new HashMap<>();
 
     public BuildIntrospector() { }
 
@@ -112,6 +117,41 @@ public class BuildIntrospector {
             MavenXpp3Reader reader = new MavenXpp3Reader();
             Model model = reader.read(new FileReader(inputFile));
 
+            // If the parent has spring-boot-maven plugin, use the parent to build the whole project together
+            // If not found, build the project itself
+            AtomicBoolean parentHasSpringBootMavenPlugin = new AtomicBoolean(false);
+            String parentRelativePath = model.getParent().getRelativePath();
+            String parentAbsolutePath = null;
+            if (parentRelativePath != null) {
+                File parentPom = new File(inputFile.getParentFile(), parentRelativePath);
+                
+                if (parentPom.exists()) {
+                    Model parentModel;
+                    parentAbsolutePath = parentPom.getCanonicalPath();
+                    if (ModelMap.containsKey(parentAbsolutePath)) {
+                        parentModel = ModelMap.get(parentAbsolutePath);
+                    } else {
+                        parentModel = reader.read(new FileReader(parentAbsolutePath));
+                        
+                        if (parentModel == null) {
+                            LOGGER.warning("Failed to read parent pom.xml file: " + parentAbsolutePath);
+                        }
+                        ModelMap.put(parentAbsolutePath, parentModel);
+                    }
+                    
+                    findPlugin(parentModel, "org.springframework.boot:spring-boot-maven-plugin").ifPresent(plugin -> {
+                        parentHasSpringBootMavenPlugin.set(true);
+                    });
+                    
+                    if (!parentHasSpringBootMavenPlugin.get() 
+                            && parentModel.getParent() != null
+                            && "org.springframework.boot".equals(parentModel.getParent().getGroupId()) 
+                            && "spring-boot-starter-parent".equals(parentModel.getParent().getArtifactId())) {
+                        parentHasSpringBootMavenPlugin.set(true);
+                    }
+                }
+            }
+
             if (findPlugin(model, "com.spotify:dockerfile-maven-plugin").isPresent()) {
                 LOGGER.fine("Found Spotify Dockerfile Maven Plugin!");
                 LOGGER.fine("Use the following command to build the Docker image:");
@@ -125,9 +165,9 @@ public class BuildIntrospector {
             }
 
             Optional<Plugin> springBootMavenPluginOptional = findPlugin(model, "org.springframework.boot:spring-boot-maven-plugin");
-            if (springBootMavenPluginOptional.isPresent()) {
+            
+            if (springBootMavenPluginOptional.isPresent() || parentHasSpringBootMavenPlugin.get()) {
                 LOGGER.fine("Found Spring Boot Maven Plugin!");
-                Plugin plugin = springBootMavenPluginOptional.get();
 
                 // detect whether it's a web application
                 if (findDependency(model, "org.springframework.boot:spring-boot-starter-web").isPresent()) {
@@ -149,9 +189,13 @@ public class BuildIntrospector {
                 }
 
                 // determine the docker image name
-                var dockerImageName = getPluginConfiguration(plugin, "image.name");
-                if (dockerImageName == null) {
-                    dockerImageName = getPluginConfiguration(plugin, "imageName");
+                String dockerImageName = null;
+                if (springBootMavenPluginOptional.isPresent()) {
+                    Plugin plugin = springBootMavenPluginOptional.get();
+                    dockerImageName = getPluginConfiguration(plugin, "image.name");
+                    if (dockerImageName == null) {
+                        dockerImageName = getPluginConfiguration(plugin, "imageName");
+                    }    
                 }
                 if (dockerImageName == null) {
                     dockerImageName = model.getArtifactId() + ":" + getVersion(model);
@@ -162,17 +206,31 @@ public class BuildIntrospector {
                 outputEnvs.put("BUILD_IMAGE", dockerImageName);
 
                 // OpenTelemetry Java Agent FIXME could be other APMs
-                if (project.isOpenTelemetryEnabled()) {
-                    String buildpacks = getPluginConfiguration(plugin, "image.buildpacks");
+                if (project.isOpenTelemetryEnabled() && springBootMavenPluginOptional.isPresent()) {
+                    String buildpacks = getPluginConfiguration(springBootMavenPluginOptional.get(), "image.buildpacks");
                     // FIXME this doesn't cover all cases, but it's a start
                     if (buildpacks == null) {
                         LOGGER.fine("OpenTelemetry is enabled for [%s], but the Spring Boot Maven Plugin is not configured with buildpacks.".formatted(project.getName()));
                         outputEnvs.put("BUILD_ADD_OTEL_AGENT", "true");
-                    }
+                    }   
                 }
                 // FIXME We could add more options here, like -Dspring-boot.build-image.imageName=...
                 // https://docs.spring.io/spring-boot/maven-plugin/build-image.html#build-image.customization
-                deploymentStrategy.withCommand(new String[] {"mvn", "spring-boot:build-image"});
+
+                deploymentStrategy.withCommand(new String[]{"mvn", "clean", "spring-boot:build-image", "-DskipTests"});
+//                if (!parentHasSpringBootMavenPlugin.get()) {
+//                    deploymentStrategy.withCommand(new String[]{"mvn", "clean", "spring-boot:build-image", "-DskipTests"});
+//                }
+                
+            }
+
+            if (parentHasSpringBootMavenPlugin.get()) {
+                if (!Boolean.TRUE.equals(ParentBuiltStatus.get(parentAbsolutePath))) {
+                    deploymentStrategy.withCommand(new String[] {"mvn", "clean", "spring-boot:build-image", "-DskipTests", "-T" + Runtime.getRuntime().availableProcessors(), "-f" + parentRelativePath});
+                    ParentBuiltStatus.put(parentAbsolutePath, true);
+                } else {
+                    // we don't need to rebuild again
+                }
             }
 
             strategies.add(deploymentStrategy);
