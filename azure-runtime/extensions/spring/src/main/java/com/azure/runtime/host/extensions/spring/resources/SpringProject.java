@@ -39,7 +39,7 @@ public class SpringProject extends MicroserviceProject<SpringProject>
                 withEnvironment("CONFIG_SERVER_URL", "{config-server.bindings.https.url}");
             }
             if ("BUILD_EXPORTER_ZIPKIN_ENABLED".equals(k)) {
-                withEnvironment("SPRING_ZIPKIN_BASEURL", "{zipkin-server.bindings.https.url}");
+                withEnvironment("MANAGEMENT_ZIPKIN_TRACING_ENDPOINT", "{zipkin-server.bindings.https.url}/api/v2/spans");
             }
         });
         
