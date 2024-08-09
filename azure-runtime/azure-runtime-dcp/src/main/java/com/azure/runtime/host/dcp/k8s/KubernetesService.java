@@ -202,25 +202,25 @@ public class KubernetesService implements IKubernetesService, AutoCloseable {
             if (namespaceNotProvided) {
                 return Watch.createWatch(this.getApiClient(), apiInstance.listClusterCustomObject(group, version, resourceType)
                                 .watch(true)
-                        .executeAsync(new ApiCallback<Object>() {
+                        .executeAsync(new ApiCallback<>() {
                             @Override
                             public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
-                                
+
                             }
 
                             @Override
                             public void onSuccess(Object result, int statusCode, Map<String, List<String>> responseHeaders) {
-                                
+
                             }
 
                             @Override
                             public void onUploadProgress(long bytesWritten, long contentLength, boolean done) {
-                                
+
                             }
 
                             @Override
                             public void onDownloadProgress(long bytesRead, long contentLength, boolean done) {
-                                
+
                             }
                         }).clone(), watchType);
             } else {

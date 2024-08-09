@@ -14,6 +14,10 @@ public class Service extends CustomResource<ServiceSpec, ServiceStatus> {
         super(spec);
     }
 
+    public Service() {
+        super();
+    }
+
     /**
      * Factory method to create a new Service instance with basic settings.
      * @param name The name of the service.

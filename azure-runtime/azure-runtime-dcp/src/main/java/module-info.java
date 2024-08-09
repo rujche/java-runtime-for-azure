@@ -22,6 +22,7 @@ module com.azure.runtime.host.dcp {
     opens com.azure.runtime.host.dcp.model.common to com.google.gson;
     opens com.azure.runtime.host.dcp.model.container to com.google.gson;
     opens com.azure.runtime.host.dcp.model.executable to com.google.gson;
+    opens com.azure.runtime.host.dcp.model.service to com.google.gson;
     exports com.azure.runtime.host.dcp.logging;
     exports com.azure.runtime.host.dcp.k8s;
     exports com.azure.runtime.host.dcp.utils;

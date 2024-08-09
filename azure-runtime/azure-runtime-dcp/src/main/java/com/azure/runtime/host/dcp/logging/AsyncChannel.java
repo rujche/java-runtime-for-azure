@@ -21,7 +21,7 @@ public class AsyncChannel<T> implements AsyncIterable<T>{
     }
 
     public CompletableFuture<Void> produce(T item) {
-        System.out.println("Producing on thread " + Thread.currentThread().getName() + " item " + item);
+//        System.out.println("Producing on thread " + Thread.currentThread().getName() + " item " + item);
         try {
             queue.put(item);
         } catch (InterruptedException e) {
@@ -31,7 +31,7 @@ public class AsyncChannel<T> implements AsyncIterable<T>{
     }
 
     public CompletableFuture<T> consume() {
-        System.out.println("Consuming on thread " + Thread.currentThread().getName());
+//        System.out.println("Consuming on thread " + Thread.currentThread().getName());
         T take;
         try {
             take = queue.take();

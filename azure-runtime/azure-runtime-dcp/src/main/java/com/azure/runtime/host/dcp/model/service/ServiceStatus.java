@@ -6,7 +6,7 @@ import io.kubernetes.client.openapi.models.V1Status;
 /**
  * Represents the status of a Service, extending Kubernetes V1Status.
  */
-public class ServiceStatus extends V1Status {
+public class ServiceStatus /*extends V1Status*/ {
     /**
      * The actual address the service is running on
      */

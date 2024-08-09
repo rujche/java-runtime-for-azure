@@ -51,6 +51,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -146,9 +147,17 @@ public class ApplicationExecutor {
 
             watchResourceChanges();
 
-            createServices();
+//            createServices();
             createContainersAndExecutables();
 
+            
+            for (AppResource appResource : appResources) {
+                if (appResource instanceof ServiceAppResource) {
+                    ServiceAppResource serviceAppResource = (ServiceAppResource) appResource;
+                    Service service = serviceAppResource.getService();
+                    System.out.println("Service " + service.getMetadata().getName() + " is running on http://" + service.getSpec().getAddress() + ":" + service.getSpec().getPort());
+                }
+            }
 //            for (IDistributedApplicationLifecycleHook lifecycleHook : lifecycleHooks) {
 //                lifecycleHook.afterResourcesCreated(model);
 //            }
@@ -198,6 +207,9 @@ public class ApplicationExecutor {
                     .toList();
 
             for (EndpointAnnotation endpoint : endpoints) {
+                if (!"http".equals(endpoint.getName())) {
+                    continue;
+                }
                 String nameSuffix = RandomNameGenerator.getRandomNameSuffix();
                 String candidateServiceName = (endpoints.size() == 1)
                         ? getObjectNameForResource(sp, nameSuffix, "")
@@ -208,10 +220,11 @@ public class ApplicationExecutor {
 
                 // _options.getValue().isRandomizePorts() 
                 // FIXME whether to use randomize ports or not
-                Integer port = (false && endpoint.isProxied()) ? null : endpoint.getPort();
+                Integer port = (false && endpoint.isProxied()) ? null : endpoint.getTargetPort();
                 svc.getSpec().setPort(port);
                 svc.getSpec().setProtocol(PortProtocol.TCP); // FIXME this is hard code
                 svc.getSpec().setAddressAllocationMode(endpoint.isProxied() ? AddressAllocationModes.LOCALHOST.getMode() : AddressAllocationModes.PROXYLESS.getMode());
+                svc.getSpec().setAddress(endpoint.isProxied() ? "localhost" : null);
 
                 // So we can associate the service with the resource that produced it and the endpoint it represents.
                 svc.annotate(CustomResource.RESOURCE_NAME_ANNOTATION, sp.getName());
@@ -426,12 +439,12 @@ public class ApplicationExecutor {
 
     private <T> boolean processResourceChange(String watchEventType, T resource) {
 
-        System.out.println("Received resource change event: " + watchEventType + " for resource: " + resource);
+//        System.out.println("Received resource change event: " + watchEventType + " for resource: " + resource);
 
         if ("ADDED".equals(watchEventType) || "MODIFIED".equals(watchEventType)) {
 
             if (resource instanceof Container) {
-                System.out.println("Received container resource: " + ((Container) resource).getMetadata().getName());
+//                System.out.println("Received container resource: " + ((Container) resource).getMetadata().getName());
                 Container container = (Container) resource;
                 this.containersMap.put(container.getMetadata().getName(), container);
                 LogInformationEntry logInformationEntry = new LogInformationEntry(container.getMetadata().getName(), container.isLogsAvailable(), false);
@@ -443,7 +456,7 @@ public class ApplicationExecutor {
                     throw new RuntimeException(e);
                 }
             } else if (resource instanceof Executable) {
-                System.out.println("Received executable resource: " + ((Executable) resource).getMetadata().getName());
+//                System.out.println("Received executable resource: " + ((Executable) resource).getMetadata().getName());
                 Executable executable = (Executable) resource;
                 this.executablesMap.put(executable.getMetadata().getName(), executable);
                 LogInformationEntry logInformationEntry = new LogInformationEntry(executable.getMetadata().getName(), executable.isLogsAvailable(), false);
@@ -518,7 +531,7 @@ public class ApplicationExecutor {
                     resourceLogState.put(entry.getResourceName(), new Pair<>(logsAvailable, hasSubscribers));
 
 
-                    System.out.println("Updating log state for resource: " + entry.getResourceName() + " logsAvailable: " + logsAvailable + " hasSubscribers: " + hasSubscribers);
+//                    System.out.println("Updating log state for resource: " + entry.getResourceName() + " logsAvailable: " + logsAvailable + " hasSubscribers: " + hasSubscribers);
                     if (Boolean.TRUE.equals(logsAvailable)) {
                         // FIXME this should be replaced by the dashboard
                         try {
@@ -537,10 +550,10 @@ public class ApplicationExecutor {
 
 
                         if (containersMap.containsKey(entry.getResourceName())) {
-                            System.out.println("Calling startLogStream for container: " + entry.getResourceName());
+//                            System.out.println("Calling startLogStream for container: " + entry.getResourceName());
                             startLogStream(containersMap.get(entry.getResourceName()));
                         } else if (executablesMap.containsKey(entry.getResourceName())) {
-                            System.out.println("Calling startLogStream for executable: " + entry.getResourceName());
+//                            System.out.println("Calling startLogStream for executable: " + entry.getResourceName());
                             startLogStream(executablesMap.get(entry.getResourceName()));
                         } else {
                             LOGGER.severe("Resource not found for log streaming: " + entry.getResourceName());
@@ -612,40 +625,63 @@ public class ApplicationExecutor {
 
     private void createServices() {
         List<ServiceAppResource> needAddressAllocated = appResources.stream().filter(r -> r instanceof ServiceAppResource)
-                .filter(r -> ((ServiceAppResource) r).getService().hasCompleteAddress() && ((ServiceAppResource) r).getService().getSpec().getAddressAllocationMode().equals(AddressAllocationModes.PROXYLESS.getMode()))
+                .filter(r -> {
+                    Service svc = ((ServiceAppResource) r).getService();
+                    return svc.hasCompleteAddress() 
+                            && !AddressAllocationModes.PROXYLESS.getMode().equals(svc.getSpec().getAddressAllocationMode());
+                })
                 .map(r -> (ServiceAppResource) r)
                 .toList();
 
         if (needAddressAllocated.isEmpty()) {
             return;
         }
+        needAddressAllocated = new ArrayList<>(needAddressAllocated);
         createResourcesAsync(Service.class);
-        
-        kubernetesService.watch(Service.class, null, new TypeToken<Watch.Response<Service>>() {
-        }.getType()).forEachRemaining(event -> {
-            if ("BOOKMARK".equals(event.type)) {
-                return;
-            }
 
-            Service updated = event.object;
-            Optional<ServiceAppResource> svcOptional = needAddressAllocated.stream().filter(r -> r.getService().getMetadata().getName().equals(updated.getMetadata().getName())).findFirst();
-            if (!svcOptional.isPresent()) {
-                return;
-            }
-            ServiceAppResource serviceAppResource = svcOptional.get();
-            Service service = serviceAppResource.getService();
-            if (service.hasCompleteAddress()) {
-                service.applyAddressInfoFrom(updated);
-                needAddressAllocated.remove(serviceAppResource);
-            }
-            
-            if (needAddressAllocated.isEmpty()) {
-                return;
+        List<ServiceAppResource> finalNeedAddressAllocated = needAddressAllocated;
+        CountDownLatch latch = new CountDownLatch(finalNeedAddressAllocated.size());
+
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                kubernetesService.watch(Service.class, null, new TypeToken<Watch.Response<Service>>() {
+                }.getType()).forEachRemaining(event -> {
+                    if ("BOOKMARK".equals(event.type)) {
+                        return;
+                    }
+
+                    Service updated = event.object;
+                    Optional<ServiceAppResource> svcOptional = finalNeedAddressAllocated.stream().filter(r -> r.getService().getMetadata().getName().equals(updated.getMetadata().getName())).findFirst();
+                    if (!svcOptional.isPresent()) {
+                        return;
+                    }
+                    ServiceAppResource serviceAppResource = svcOptional.get();
+                    Service service = serviceAppResource.getService();
+                    if (service.hasCompleteAddress()) {
+                        service.applyAddressInfoFrom(updated);
+                        finalNeedAddressAllocated.remove(serviceAppResource);
+                        latch.countDown();
+                    }
+
+                    if (finalNeedAddressAllocated.isEmpty()) {
+
+                    }
+                });
             }
         });
         
         
-        for (AppResource appResource : needAddressAllocated) {
+        try {
+            latch.await(Duration.ofSeconds(60).toMillis(), TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            LOGGER.warning("Interrupted while waiting for services to be allocated an address." + e.getMessage());
+        }
+        
+        
+        for (AppResource appResource : finalNeedAddressAllocated) {
             ServiceAppResource serviceAppResource = (ServiceAppResource) appResource;
             Service service = serviceAppResource.getService();
 
@@ -831,7 +867,7 @@ public class ApplicationExecutor {
 
             var task = CompletableFuture.runAsync(() -> {
                 try {
-                    System.out.println("Starting log streaming for " + resource.getMetadata().getName() + " on " + Thread.currentThread().getName());
+//                    System.out.println("Starting log streaming for " + resource.getMetadata().getName() + " on " + Thread.currentThread().getName());
 
                     AsyncIterator<List<LogEntry>> iterator = enumerable.iterator();
                     while (iterator.hasNext()) {
@@ -839,7 +875,7 @@ public class ApplicationExecutor {
                                 {
                                     for (LogEntry entry : batch) {
                                         var level = entry.isErrorMessage() ? Level.SEVERE : Level.INFO;
-                                        loggers.get(resource.getMetadata().getName()).log(level, entry.getContent());
+//                                        loggers.get(resource.getMetadata().getName()).log(level, entry.getContent());
                                     }
                                 }
                         );
