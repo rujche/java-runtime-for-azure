@@ -100,9 +100,9 @@ public class ApplicationExecutor {
     private final ExecutorService executor = Executors.newFixedThreadPool(10);
 
     private final static Set<String> LOCAL_IGNORE_ENV_KEYS = new HashSet<>(Arrays.asList(
-        "eureka.client.serviceUrl.defaultZone",
-        "CONFIG_SERVER_URL",
-        "MANAGEMENT_ZIPKIN_TRACING_ENDPOINT"
+            "eureka.client.serviceUrl.defaultZone",
+            "CONFIG_SERVER_URL",
+            "MANAGEMENT_ZIPKIN_TRACING_ENDPOINT"
     ));
 
     public ApplicationExecutor(
@@ -150,7 +150,7 @@ public class ApplicationExecutor {
 //            createServices();
             createContainersAndExecutables();
 
-            
+
             for (AppResource appResource : appResources) {
                 if (appResource instanceof ServiceAppResource) {
                     ServiceAppResource serviceAppResource = (ServiceAppResource) appResource;
@@ -181,13 +181,14 @@ public class ApplicationExecutor {
 //            return entry.getValue();
 //        }).collect(Collectors.toList()));
 
-        try {
-            for (Future<?> task : tasks) {
-                task.get();
+        for (Future<?> task : tasks) {
+            try {
+                task.cancel(true);
+            } catch (Exception e) {
+                LOGGER.fine("One or more monitoring tasks terminated with an error. " + e.getMessage());
             }
-        } catch (Exception e) {
-            LOGGER.fine("One or more monitoring tasks terminated with an error. " + e.getMessage());
         }
+
         return new CompletableFuture<>();
     }
 
@@ -285,12 +286,12 @@ public class ApplicationExecutor {
                 ctr.getSpec().setBuild(build);
                 ctr.getSpec().setContainerName(containerObjectName); // Use the same name for container orchestrator (Docker, Podman) resource and DCP object name.
                 ctr.getSpec().setPorts(new ArrayList<>());
-                
-                Set<Integer> distinctTargetPorts = new HashSet<>(); 
+
+                Set<Integer> distinctTargetPorts = new HashSet<>();
                 dockerFile.getAnnotations().stream()
                         .filter(a -> a instanceof EndpointAnnotation)
                         .forEach(a -> distinctTargetPorts.add(((EndpointAnnotation) a).getTargetPort()));
-                
+
                 distinctTargetPorts.forEach(
                         port -> {
                             ContainerPortSpec containerPortSpec = new ContainerPortSpec();
@@ -298,7 +299,7 @@ public class ApplicationExecutor {
                             containerPortSpec.setContainerPort(port);
                             ctr.getSpec().getPorts().add(containerPortSpec);
                         });
-                
+
 
                 ctr.annotate(CustomResource.RESOURCE_NAME_ANNOTATION, dockerFile.getName());
                 ctr.annotate(CustomResource.OTEL_SERVICE_NAME_ANNOTATION, dockerFile.getName());
@@ -512,10 +513,10 @@ public class ApplicationExecutor {
 
     private CompletableFuture<Void> updateLoggerState() {
         var watchInformationChannelTask = CompletableFuture.runAsync(() -> {
-            
+
             AsyncIterator<LogInformationEntry> iterator = this.logInformationChannel.iterator();
             while (iterator.hasNext()) {
-                
+
                 iterator.next().thenAccept(entry -> {
 
                     var logsAvailable = resourceLogState.getOrDefault(entry.getResourceName(), new Pair<>(false, false)).first();
@@ -627,7 +628,7 @@ public class ApplicationExecutor {
         List<ServiceAppResource> needAddressAllocated = appResources.stream().filter(r -> r instanceof ServiceAppResource)
                 .filter(r -> {
                     Service svc = ((ServiceAppResource) r).getService();
-                    return svc.hasCompleteAddress() 
+                    return svc.hasCompleteAddress()
                             && !AddressAllocationModes.PROXYLESS.getMode().equals(svc.getSpec().getAddressAllocationMode());
                 })
                 .map(r -> (ServiceAppResource) r)
@@ -643,7 +644,7 @@ public class ApplicationExecutor {
         CountDownLatch latch = new CountDownLatch(finalNeedAddressAllocated.size());
 
         ExecutorService executorService = Executors.newFixedThreadPool(1);
-        
+
         executorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -672,15 +673,15 @@ public class ApplicationExecutor {
                 });
             }
         });
-        
-        
+
+
         try {
             latch.await(Duration.ofSeconds(60).toMillis(), TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             LOGGER.warning("Interrupted while waiting for services to be allocated an address." + e.getMessage());
         }
-        
-        
+
+
         for (AppResource appResource : finalNeedAddressAllocated) {
             ServiceAppResource serviceAppResource = (ServiceAppResource) appResource;
             Service service = serviceAppResource.getService();
@@ -762,14 +763,14 @@ public class ApplicationExecutor {
 
             return order;
         }
-        
+
         public int getInDegree(int u) {
             return this.inDegree.get(u);
         }
-        
+
     }
-    
-    
+
+
     private void createContainersAndExecutables() {
         // order the dependencies
         Graph graph = new Graph(appResources.size());
@@ -777,10 +778,10 @@ public class ApplicationExecutor {
         for (int i = 0; i < appResources.size(); i++) {
             appResourceIndex.put(appResources.get(i).getModelResource().getName(), i);
         }
-        
+
         for (int i = 0; i < appResources.size(); i++) {
             AppResource appResource = appResources.get(i);
-            if (appResource.getModelResource() instanceof  SpringProject) {
+            if (appResource.getModelResource() instanceof SpringProject) {
                 SpringProject springProject = (SpringProject) appResource.getModelResource();
                 for (Resource dependency : springProject.getDependencies()) {
                     int j = appResourceIndex.get(dependency.getName());
@@ -809,7 +810,7 @@ public class ApplicationExecutor {
 
                 if (hasDependency) {
                     while (true) {
-                        
+
                         Executable status = this.kubernetesService.get(Executable.class, executable.getMetadata().getName(), null);
                         try {
                             Thread.sleep(Duration.ofSeconds(3));
@@ -823,13 +824,13 @@ public class ApplicationExecutor {
                             System.out.println("Current status: " + status.getStatus().getState());
                         }
                     }
-                    
+
                 }
-                
+
                 System.out.println("Executable created: " + executable.getMetadata().getName());
             }
         });
-        
+
 //        // Implementation here
 //        this.appResources.forEach(appResource -> {
 //            
