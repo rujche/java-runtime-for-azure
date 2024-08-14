@@ -100,7 +100,6 @@ public class ApplicationExecutor {
     private final ExecutorService executor = Executors.newFixedThreadPool(10);
 
     private final static Set<String> LOCAL_IGNORE_ENV_KEYS = new HashSet<>(Arrays.asList(
-            "eureka.client.serviceUrl.defaultZone",
             "CONFIG_SERVER_URL",
             "MANAGEMENT_ZIPKIN_TRACING_ENDPOINT"
     ));

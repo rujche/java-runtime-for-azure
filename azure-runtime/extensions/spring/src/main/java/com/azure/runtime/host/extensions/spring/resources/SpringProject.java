@@ -34,7 +34,6 @@ public class SpringProject extends MicroserviceProject<SpringProject>
         super.getIntrospectOutputEnvs().forEach((k, v) -> {
             if ("BUILD_EUREKA_CLIENT_ENABLED".equals(k)) {
                 // https://github.com/spring-cloud/spring-cloud-netflix/issues/2541 
-                withEnvironment("eureka.client.serviceUrl.defaultZone", "{eureka.bindings.https.url}/eureka/");
                 withEnvironment("EUREKA_INSTANCE_PREFERIPADDRESS", "true");
                 withEnvironment("CONFIG_SERVER_URL", "{config-server.bindings.https.url}");
             }

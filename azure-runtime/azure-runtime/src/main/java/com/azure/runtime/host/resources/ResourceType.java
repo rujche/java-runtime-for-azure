@@ -34,6 +34,11 @@ public class ResourceType {
      */
     public static final ResourceType VALUE = fromString("value.v0");
 
+    /**
+     * A value resource - consider using {@link Value}.
+     */
+    public static final ResourceType JAVA_COMPONENT_EUREKA_SERVER_FOR_SPRING = fromString("java.component.eureka.server.for.spring.v0");
+
     @NotNull(message = "Resource type cannot be null")
     @NotEmpty(message = "Resource type cannot be empty")
     private final String value;

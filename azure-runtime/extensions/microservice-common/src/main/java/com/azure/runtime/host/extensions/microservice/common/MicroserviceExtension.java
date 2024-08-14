@@ -5,6 +5,7 @@ import com.azure.runtime.host.Extension;
 import com.azure.runtime.host.extensions.microservice.common.resources.ConfigServerService;
 import com.azure.runtime.host.extensions.microservice.common.resources.EurekaServiceDiscovery;
 import com.azure.runtime.host.extensions.microservice.common.resources.ZipkinServerService;
+import com.azure.runtime.host.resources.JavaComponentEurekaServerForSpring;
 
 public abstract class MicroserviceExtension implements Extension {
     private final String name;
@@ -32,6 +33,10 @@ public abstract class MicroserviceExtension implements Extension {
      */
     public EurekaServiceDiscovery addEurekaServiceDiscovery(String name) {
         return DistributedApplication.getInstance().addResource(new EurekaServiceDiscovery(name));
+    }
+
+    public JavaComponentEurekaServerForSpring addJavaComponentEurekaServerForSpring(String name) {
+        return DistributedApplication.getInstance().addResource(new JavaComponentEurekaServerForSpring(name));
     }
 
     /**
